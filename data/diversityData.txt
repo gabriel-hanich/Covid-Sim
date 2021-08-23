@@ -1,0 +1,11 @@
+<male>49
+<female>51
+<population>1000
+<youngStart>0
+<youngEnd>18
+<midStart>18
+<midEnd>60
+<oldStart>60
+<oldEnd>85
+<family>72 
+<group>28
