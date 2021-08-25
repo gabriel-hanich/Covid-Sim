@@ -18,5 +18,14 @@ class house:
     
     def setHouseType(self, houseType):
         self.type = houseType
-        
-    
+
+class workPlace:
+    def __init__(self, essentialStatus, genderRatio, ageDistro):
+        super().__init__()
+        self.essential = essentialStatus
+        self.genderRatio = genderRatio
+        self.ageDisto = ageDistro
+        self.workerList = []
+
+    def addWorker(self, worker):
+        self.workerList

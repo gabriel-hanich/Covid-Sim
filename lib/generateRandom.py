@@ -1,4 +1,6 @@
 import random
+import numpy as np
+
 
 # Given a list of percentages and variable names
 # generate a random variable name with the likelhood of the given percantage
@@ -30,4 +32,14 @@ def generateKidsCount(residentCount):
         return int(residentCount / 2)
     else:
         return random.randint(residentCount / 2 - 0.5, residentCount / 2 + 0.5)
+
+def generateFromCurve(center, deviation):
+    foundNum = False
+    while not foundNum:
+        r = np.random.normal(center, deviation, 1)
+        r = r[0]
+        if r > center - deviation:
+            if r < center + deviation:
+                foundNum = True
+    return r
         

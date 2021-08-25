@@ -2,9 +2,11 @@ import lib.entities as entities
 from lib.readCsv import getData
 from lib.generateRandom import generateFromList
 from lib.generateRandom import generateKidsCount
+from lib.generateRandom import generateFromCurve
 import matplotlib.pyplot as plt
 from collections import Counter
 import random
+import numpy as np
 
 constants = {}
 
@@ -40,6 +42,7 @@ while True:
         houseDensity = int(generateFromList(houseDensityFreq))
     else:
         houseDensity =  constants["population"] - totalHouseCount
+        houseList.append(entities.house(houseDensity))
         totalHouseCount += houseDensity
         break
     houseList.append(entities.house(houseDensity))
@@ -89,25 +92,24 @@ for house in houseList:
             house.setHouseType("group")
             for i in range(house.residentCount):
                 for personIndex, person in enumerate(peopleList):
-                    if person.age > constants["youngEnd"]:
+                    if person.age >= constants["youngEnd"]:
                         house.addResident(person)
                         peopleList.pop(personIndex)
                         break
 
-# for house in houseList:
-#     if house.residentCount != len(house.residentList):
-#         print(house.type)
-#         print(house.residentCount)
-#         print(len(house.residentList))
-#         print(house.residentList)
-#         print("==")
-
-# print(len(peopleList))
-
-x = constants["population"]
-for h in houseList:
-    x = x - int(h.residentCount)
-
-print(x)
+print("PEOPLE GENERATED = " + str(constants["population"]))
+print("HOUSES MADE = " + str(len(houseList)))
+print("PEOPLE NOT IN A HOUSE = " + str(len(peopleList)))
+print("AVERAGE PEOPLE PER HOUSE = " + str(constants["population"] / len(houseList)))
 
 
+# Generate workplaces
+workList = []
+for workPlace in range(constants["workCount"]):
+    maleRatio = round(generateFromCurve(0.5, constants["maxWorkPlaceGenderRatio"] / 100), 2)
+    genderRatio = [["male", maleRatio], ["female", 1 - maleRatio]]
+    
+    essentialStatus = generateFromList(getData("data/Workplace/essentialDistro.csv", True))
+    ageDistro = getData("data/Workplace/" + essentialStatus + "/ageDistro.csv", True)
+    
+    workList.append(entities.workPlace(essentialStatus, genderRatio, ageDistro))
