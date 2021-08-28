@@ -20,12 +20,14 @@ class house:
         self.type = houseType
 
 class workPlace:
-    def __init__(self, essentialStatus, genderRatio, ageDistro):
+    def __init__(self, essentialStatus, genderRatio, ageDistro, workerCount):
         super().__init__()
-        self.essential = essentialStatus
+        self.essentialStatus = essentialStatus
         self.genderRatio = genderRatio
         self.ageDisto = ageDistro
         self.workerList = []
+        self.workerCount = workerCount
 
     def addWorker(self, worker):
-        self.workerList
+        self.workerList.append(worker)
+    

@@ -1,10 +1,11 @@
 <male>49
 <female>51
 <population>2000
-<workCount>32
+<unemployment>6
 <maxWorkPlaceGenderRatio>30
+<jobBuffer>1.05
 <youngStart>0
-<youngEnd>18
+<youngEnd>15
 <midStart>18
 <midEnd>60
 <oldStart>60
