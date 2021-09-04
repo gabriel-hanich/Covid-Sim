@@ -42,4 +42,6 @@ def generateFromCurve(center, deviation):
             if r < center + deviation:
                 foundNum = True
     return r
+
+
         
