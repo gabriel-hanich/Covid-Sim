@@ -22,16 +22,9 @@ with open("Generated towns/" + fileName, "r") as townFile:
 dataVersion = townData["general"][0]["dataVersion"]
 
 # Generate constants data 
-constants = {}
-divFile = open("data/" + dataVersion + "/diversityData.txt", "r", encoding='utf-8')
-divData = divFile.readlines()
-for line in divData:
-    try:
-        constants[line[1:line.find(">")]] = int(line[line.find(">") + 1:-1])
-    except ValueError:
-        constants[line[1:line.find(">")]] = float(line[line.find(">") + 1:-1])
-        
-divFile.close()
+with open("data/" + dataVersion + "/diversityData.json", "r", encoding='utf-8') as divFile:
+    constants = json.load(divFile)
+
 
 
 # Interpret the JSON data into lists and classes
@@ -90,7 +83,7 @@ for person in peopleList:
 
 # Calculate days off
 daysOff = []
-for i in range(constants["daysOffPerWeek"]):
+for i in range(constants["time"]["daysOffPerWeek"]):
     daysOff.append(7 - i)
 daysOff.sort()
 
@@ -103,13 +96,13 @@ for day in range(dayCount):
 
     if not isWeekend: # If its a weekday
         weekDayIndex = day % 7
-        if weekDayIndex == 1: # If its the first day of the week
+        if weekDayIndex == 1: # If its the first day of the week    
             for person in peopleList:
                 if person.workPlace != "None":
-                    person.generateWorkPlan(7 - constants["daysOffPerWeek"])
+                    person.generateWorkPlan(7 - constants["time"]["daysOffPerWeek"])
         
         for person in peopleList:
             if person.workPlace != "None":
                 if person.workPlan[weekDayIndex - 1]:
-                    print("yes" + str(day))
-        
+                    person.goPlace(entities.vist(person.workPlace, person, constants["time"]["dayStart"], constants["time"]["dayEnd"], day))
+    

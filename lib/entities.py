@@ -9,6 +9,7 @@ class person:
         self.workPlace = "None"
         self.adress = "None"
         self.workCount = 0
+        self.visitLog = []
         
     def addAdress(self, adress):
         self.adress = adress
@@ -28,6 +29,9 @@ class person:
                 if self.workPlan[pos] == False:
                     self.workPlan[pos] = True
                     foundVal = True
+    
+    def goPlace(self, place):
+       self.visitLog.append(place)
 
 class house:
     def __init__(self, residentCount, id):
@@ -63,10 +67,13 @@ class otherLocation:
         self.visitLog = {}
         self.id = id
 
-    def visit(self, person, time):
-        if time not in visitLog:
-            self.visitLog[time] = [person]
-        else:
-            self.visitLog[time].append(person)
+class vist:
+    def __init__(self, location, person, startPeriod, endPeriod, day):
+        super().__init__()
+        self.location = location
+        self.person = person
+        self.startPeriod = startPeriod
+        self.endPeriod = endPeriod
+        self.day = day
 
     

@@ -10,21 +10,17 @@ import random
 import json
 import numpy as np
 
-constants = {}
 dataVersion = "1"
 #Get Diversity data about population
+with open("data/" + dataVersion + "/diversityData.json", "r", encoding='utf-8') as divFile:
+    constants = json.load(divFile)
 
-divFile = open("data/" + dataVersion + "/diversityData.txt", "r", encoding='utf-8')
-divData = divFile.readlines()
-for line in divData:
-    try:
-        constants[line[1:line.find(">")]] = int(line[line.find(">") + 1:-1])
-    except ValueError:
-        constants[line[1:line.find(">")]] = float(line[line.find(">") + 1:-1])
-        
-divFile.close()
 
-genderFreq = [["male", float(constants["male"])], ["female", float(constants["female"])]]
+
+
+genderFreq = [["male", constants["gender"]["malePercent"]], ["female", constants["gender"]["femalePercent"]]]
+
+
 
 maleAgeFreq = getData("data/" + dataVersion + "/Male/ageDistro.csv", True)
 femaleAgeFreq = getData("data/" + dataVersion + "/Female/ageDistro.csv", True)
@@ -36,7 +32,7 @@ def generateId(prefix, val):
 
 housePeopleList = []
 # Generate population
-for i in range(constants["population"]):
+for i in range(constants["general"]["population"]):
     gender = generateFromList(genderFreq)
     ageRange = generateFromList(globals()[gender + "AgeFreq"]) # Generate a random age range based off of data, (e.g 0-5)
     ageRange = decode(ageRange)
@@ -51,11 +47,11 @@ jsonPeopleList =  housePeopleList[:]
 houseList = []
 totalHouseCount = 0
 while True:
-    if totalHouseCount + 6 < constants["population"]:
+    if totalHouseCount + 6 < constants["general"]["population"]:
         houseDensity = int(generateFromList(houseDensityFreq))
         id = generateId("H", totalHouseCount + 1)
     else:
-        houseDensity =  constants["population"] - totalHouseCount
+        houseDensity =  constants["general"]["population"] - totalHouseCount
         id = generateId("H", totalHouseCount + 1)
         houseList.append(entities.house(houseDensity, id))
         totalHouseCount += houseDensity
@@ -70,7 +66,7 @@ for house in houseList:
     if house.residentCount == 1:
         house.setHouseType("single")
         for personIndex, person, in enumerate(housePeopleList):
-            if person.age > constants["midStart"]:
+            if person.age > constants["age"]["midStart"]:
                 housePeopleList.pop(personIndex)
                 person.addAdress(house.id)
                 house.addResident(person) # If the person is old enough to live by themselves, put them in a single house
@@ -79,7 +75,7 @@ for house in houseList:
     else: # If the house contains more then one person
         isKids = False # Find if there are any more kids in the population
         for sampleIndex, samplePerson in enumerate(housePeopleList):
-            if samplePerson.age < constants["youngEnd"]:
+            if samplePerson.age < constants["age"]["youngEnd"]:
                 isKids = True
                 break
         
@@ -89,13 +85,13 @@ for house in houseList:
             adultList = []
             for i in range(generateKidsCount(house.residentCount)): # Find a certain amount of kids for the house
                 for kidIndex, kid in enumerate(housePeopleList):
-                    if kid.age < constants["youngEnd"]:
+                    if kid.age < constants["age"]["youngEnd"]:
                         kidList.append(kid)
                         housePeopleList.pop(kidIndex)
                         break
             for i in range(house.residentCount - len(kidList)): # Fill the remaining vacancies with adults
                 for peopleIndex, people in enumerate(housePeopleList):
-                    if people.age > constants["youngEnd"]:
+                    if people.age > constants["age"]["youngEnd"]:
                         adultList.append(people)
                         housePeopleList.pop(peopleIndex)
                         break
@@ -111,7 +107,7 @@ for house in houseList:
             house.setHouseType("group")
             for i in range(house.residentCount):
                 for personIndex, person in enumerate(housePeopleList):
-                    if person.age >= constants["youngEnd"]:
+                    if person.age >= constants["age"]["youngEnd"]:
                         house.addResident(person)
                         person.addAdress(house.id)
                         housePeopleList.pop(personIndex)
@@ -120,7 +116,7 @@ for house in houseList:
 # Find number of people above Young Catergory
 ableCount = 0
 for person in workerPeopleList:
-    if person.age >= constants["minJobAge"] and person.age < constants["maxJobAge"]:
+    if person.age >= constants["age"]["minJobAge"] and person.age < constants["age"]["maxJobAge"]:
         ableCount += 1
 
 # Caculate the average amount of jobs an essential and non essential workplace will create
@@ -137,22 +133,22 @@ for index, probabiltiy in enumerate([essentialWorkerProbability, nonessentialWor
         valAvg = (vals["minVal"] + vals["maxVal"]) / 2
         t += valAvg * (valFreq / 100)
 
-    constants["avgPosCount" + labels[index]] = t
+    constants["jobs"]["avgPosCount" + labels[index]] = t
 
 
 # Find number of Workplaces required
-employment = 1 - (constants["unemployment"] / 100)
+employment = 1 - (constants["jobs"]["unemployment"] / 100)
 for workplace in labels:
-    constants["workCount" + workplace] = round(((employment * ableCount) / constants["avgPosCount" + workplace]) * constants["jobBuffer"])
+    constants["jobs"]["workCount" + workplace] = round(((employment * ableCount) / constants["jobs"]["avgPosCount" + workplace]) * constants["jobs"]["jobBuffer"])
 
 # Generate Work places 
 workList = []
 #  Get the age distrubution and frequencies for essential non-essential workplaces
-constants["essentialAgeDistro"] = getData("data/" + dataVersion + "/Workplace/essential/ageDistro.csv", True) 
-constants["nonessentialAgeDistro"] = getData("data/" + dataVersion + "/Workplace/nonessential/ageDistro.csv", True)
+constants["jobs"]["essentialAgeDistro"] = getData("data/" + dataVersion + "/Workplace/essential/ageDistro.csv", True) 
+constants["jobs"]["nonessentialAgeDistro"] = getData("data/" + dataVersion + "/Workplace/nonessential/ageDistro.csv", True)
 essentialCount = 0
-for workPlace in range(constants["workCountEssential"]):
-    maleRatio = round(generateFromCurve(0.5, constants["maxWorkPlaceGenderRatio"] / 100), 2) * 100 # Generate a random male percentage from Bell Curve
+for workPlace in range(constants["jobs"]["workCountEssential"]):
+    maleRatio = round(generateFromCurve(0.5, constants["jobs"]["maxWorkPlaceGenderRatio"] / 100), 2) * 100 # Generate a random male percentage from Bell Curve
     genderRatio = [["male", maleRatio], ["female", 100 - maleRatio]]
     
     essentialStatus = generateFromList(getData("data/" + dataVersion + "/Workplace/essentialDistro.csv", True))
@@ -180,7 +176,7 @@ totalJobSpots = 0
 for workPlace in workList:
     totalJobSpots += workPlace.workerCount
     for spot in range(workPlace.workerCount): # The first 'pass' to recruit ideal workers based off age and gender
-        ageRange = generateFromList(constants[workPlace.essentialStatus + "AgeDistro"])
+        ageRange = generateFromList(constants["jobs"][workPlace.essentialStatus + "AgeDistro"])
         ageRange = decode(ageRange)
         chosenGender = generateFromList(workPlace.genderRatio)
         for personIndex, person in enumerate(workerPeopleList):
@@ -193,13 +189,13 @@ for workPlace in workList:
     if len(workPlace.workerList) != workPlace.workerCount: # Fill in any gaps that the first pass failed to recruit 
         for spot in range(workPlace.workerCount - len(workPlace.workerList)):
             for peopleIndex, people in enumerate(workerPeopleList):
-                if people.age >= constants["minJobAge"] and person.age < constants["maxJobAge"]:
+                if people.age >= constants["age"]["minJobAge"] and person.age < constants["age"]["maxJobAge"]:
                     workPlace.addWorker(people)
                     people.setWorkplace(workPlace.id)
                     workerPeopleList.pop(peopleIndex)
                     break
                 
-locationCount = round((constants["population"] / len(houseList)) * len(workList))
+locationCount = round((constants["general"]["population"] / len(houseList)) * len(workList))
 
 locationList = []
 for location in range(locationCount):
@@ -213,7 +209,7 @@ employedCount = 0
 unEmployedCount = 0
 ableCount = 0
 for people in jsonPeopleList:
-    if people.age >= constants["minJobAge"] and person.age < constants["maxJobAge"]:
+    if people.age >= constants["age"]["minJobAge"] and person.age < constants["age"]["maxJobAge"]:
         if people.workPlace != "None":
             employedCount += 1
         else:
@@ -222,10 +218,10 @@ for people in jsonPeopleList:
     
 
 # Print out data about 
-print("PEOPLE GENERATED = " + str(constants["population"]))
+print("PEOPLE GENERATED = " + str(constants["general"]["population"]))
 print("HOUSES MADE = " + str(len(houseList)))
 print("PEOPLE NOT IN A HOUSE = " + str(len(housePeopleList)))
-print("AVERAGE PEOPLE PER HOUSE = " + str(constants["population"] / len(houseList)))
+print("AVERAGE PEOPLE PER HOUSE = " + str(constants["general"]["population"] / len(houseList)))
 print("NUMBER OF WORKPLACES = " + str(len(workList)))
 print("WORKER SPOTS AVAILABLE = " + str(totalJobSpots))
 print("AVERAGE SPOTS PER WORKPLACE = " + str(round(totalJobSpots / len(workList), 2)))
@@ -243,7 +239,7 @@ for keyWord in ["general", "people", "workplace", "house", "location"]:
     jsonDict[keyWord] = []
 
 jsonDict["general"].append({
-    "population": constants["population"],
+    "population": constants["general"]["population"],
     "houseCount": str(len(houseList)),
     "workPlaceCount": str(len(workList)),
     "otherLocationCount": str(len(locationList)),
