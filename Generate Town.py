@@ -196,11 +196,12 @@ for workPlace in workList:
                     break
                 
 locationCount = round((constants["general"]["population"] / len(houseList)) * len(workList))
-
+locationTypes = getData("data/" + dataVersion + "/location/typeDiv.csv", True)
 locationList = []
 for location in range(locationCount):
-    id = generateId("L", location)
-    locationList.append(entities.otherLocation("Undefined", id))
+    id = generateId("L", location + 1)
+    type = generateFromList(locationTypes)
+    locationList.append(entities.otherLocation(type, id))
 
 
 
@@ -228,7 +229,10 @@ print("AVERAGE SPOTS PER WORKPLACE = " + str(round(totalJobSpots / len(workList)
 print("PEOPLE ABLE TO WORK = " + str(ableCount))
 print("EMPLOYED COUNT = " + str(employedCount))
 print("UNEMPLOYED COUNT (over 15) = " + str(unEmployedCount))
+
 print("UNEMPLOYMENT RATE = " + str(round(unEmployedCount / ableCount, 3)))
+
+
 print("OTHER LOCATIONS = " + str(locationCount))
 
 

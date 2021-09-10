@@ -4,6 +4,7 @@ from lib.generateRandom import generateFromList
 from lib.generateRandom import generateKidsCount
 from lib.generateRandom import generateFromCurve
 from lib.decodeMinMax import decode
+from lib.generateRandom import generateTimePeriod
 import matplotlib.pyplot as plt
 from collections import Counter
 import random
@@ -14,7 +15,7 @@ dayCount = 18 # How long the sim will go for
 
 
 # Read the Json File
-fileName = "town1.json"
+fileName = "town2.json"
 
 with open("Generated towns/" + fileName, "r") as townFile:
     townData = json.load(townFile)
@@ -81,6 +82,11 @@ for person in peopleList:
     person.addAdress(findFromId(person.adress, homeList))
 
 
+# Find how many types of locations there are
+locType = [i[0] for i in getData("data/" + dataVersion + "/Location/typeDiv.csv", True)]
+shopData = json.load(open("data/" + dataVersion + "/House/shopping.json"))
+shopList = [shop for shop in locationList if shop.locType == "shop"]
+
 # Calculate days off
 daysOff = []
 for i in range(constants["time"]["daysOffPerWeek"]):
@@ -103,6 +109,35 @@ for day in range(dayCount):
         
         for person in peopleList:
             if person.workPlace != "None":
-                if person.workPlan[weekDayIndex - 1]:
-                    person.goPlace(entities.vist(person.workPlace, person, constants["time"]["dayStart"], constants["time"]["dayEnd"], day))
+                if person.workPlan[weekDayIndex - 1]: # If someone has to work that day
+                    # Generate their working times
+                    hoursToWork = round(generateFromCurve(int(person.workPlace.daysCount )+ 3, (int(person.workPlace.daysCount) + 3) / 4))
+                    workingTimes = generateTimePeriod(int(constants["time"]["dayStart"]), int(constants["time"]["dayEnd"]), int(hoursToWork))
+                    person.goPlace(entities.vist(person.workPlace, person, workingTimes["start"], workingTimes["end"], day))
+
+            if person.age > constants['age']['youngEnd']:
+                try:
+                    if not person.workPlan[weekDayIndex - 1]: # If the person is old enough to do the shopping AND NOT at work
+                        shopProb = 0
+                        if day - person.adress.lastShoppingDay != 0: # If the shopping hasn't already been done that day by another family member
+                            shopProb = (day - person.adress.lastShoppingDay) / shopData["avgDaysBetweenShops"]
+                        probList = [[True, shopProb * 100], [False, 100 - shopProb * 100]]
+                        if generateFromList(probList): # If the person decides to go shopping
+                            timeTaken = round(generateFromCurve(shopData["avgTimeForShop"], shopData["timeVar"]))
+                            shopTimes = generateTimePeriod(int(constants["time"]["dayStart"]), int(constants["time"]["dayEnd"]), int(timeTaken))
+                            
+                            shopChosen = shopList[random.randint(0, len(shopList) - 1)]
+                            
+                            person.goPlace(entities.vist(shopChosen, person, shopTimes["start"], shopTimes["end"], day))
+                        
+                except AttributeError:
+    
+    if isWeekend:
+        for person in peopleList:
+            
+
+
+        
+
+        
     

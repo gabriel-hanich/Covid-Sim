@@ -39,12 +39,16 @@ class house:
         self.residentCount = residentCount
         self.id = id
         self.residentList = []
+        self.lastShoppingDay = 0
     
     def addResident(self, person):
         self.residentList.append(person)
     
     def setHouseType(self, houseType):
         self.type = houseType
+        
+    def doShopping(self, day):
+        self.lastShoppingDay = day
 
 class workPlace:
     def __init__(self, essentialStatus, genderRatio, ageDistro, workerCount, daysCount, id):

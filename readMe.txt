@@ -34,3 +34,15 @@ Sim terminology
 A period is the smallest amount of time a resident can do something
 
 The days someone goes to work is determined in the 'generateWorkPlan' function. 
+The times someone is at work is generated randomly based of a curve with;
+The peak being = (days to work per week) + 3
+With the max variation being  = ((days to work per week) + 3) / 4
+
+So for a job working 5 days a week;
+Peak = 5 + 3
+     = 8
+variation = (+-) 8 / 4
+          = (+-) 2
+
+Job times are calculated to try and be between 9am to 5pm so that workStart and workEnd are 
+equal distance from dayStart and dayEnd

@@ -43,5 +43,22 @@ def generateFromCurve(center, deviation):
                 foundNum = True
     return r
 
+def generateTimePeriod(timeStart, timeEnd, length): # Generate a random starter time
+    if timeEnd - timeStart < length: # If the length of the event is greater then the time allocated, an even distrubution will be achieved
+        gap = length - (timeEnd - timeStart) 
+        periodStart = (timeStart + gap / 2)
+        periodEnd = (timeEnd - gap / 2)
+        if gap % 2 != 0:
+            periodStart += 0.5
+            periodEnd -= 0.5
+    else: # Generate a timespan randomly within the time allocated
+        latestStart = timeEnd  - length
+        timeProbList = []
+        for i in range(latestStart - timeStart + 1):
+            timeProbList.append([i + timeStart, 100 / (latestStart - timeStart + 1)])
+        periodStart = generateFromList(timeProbList)
+        periodEnd = periodStart + length
+    return {"start": periodStart, "end": periodEnd}
+
 
         
