@@ -41,6 +41,10 @@ def generateFromCurve(center, deviation):
         if r > center - deviation:
             if r < center + deviation:
                 foundNum = True
+    if r % 1 == 0:
+        r = int(r)
+    else:
+        r = float(r)
     return r
 
 def generateTimePeriod(timeStart, timeEnd, length): # Generate a random starter time

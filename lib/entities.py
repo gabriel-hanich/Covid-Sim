@@ -8,8 +8,8 @@ class person:
         self.id = id
         self.workPlace = "None"
         self.adress = "None"
-        self.workCount = 0
         self.visitLog = []
+        self.dayOfLastExercise = 0
         
     def addAdress(self, adress):
         self.adress = adress
@@ -17,7 +17,8 @@ class person:
     def setWorkplace(self, workPlace):
         self.workPlace = workPlace
     
-    def generateWorkPlan(self, workingDays):
+    def generateWorkPlan(self, workingDays): 
+        # Generates a list which dictates when the person goes to work
         self.workPlan = []
         for _ in range(workingDays):
             self.workPlan.append(False)
@@ -32,6 +33,9 @@ class person:
     
     def goPlace(self, place):
        self.visitLog.append(place)
+    
+    def updateExercise(self, day):
+        self.dayOfLastExercise = day
 
 class house:
     def __init__(self, residentCount, id):

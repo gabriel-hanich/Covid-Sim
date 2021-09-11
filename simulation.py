@@ -55,7 +55,7 @@ for workPlace in townData["workplace"]:
                     workPlace["essentialStatus"], workPlace["genderRatio"], workPlace["ageDistro"], 
                     workPlace["workerCount"], workPlace["daysCount"], workPlace["id"])
 
-    for worker in range(workPlace["workerCount"] - 1):
+    for worker in range(int(workPlace["workerCount"] - 1)):
         try:
             for person in peopleList:
                 if person.id == workPlace["worker" + str(worker)]:
@@ -82,10 +82,13 @@ for person in peopleList:
     person.addAdress(findFromId(person.adress, homeList))
 
 
-# Find how many types of locations there are
-locType = [i[0] for i in getData("data/" + dataVersion + "/Location/typeDiv.csv", True)]
 shopData = json.load(open("data/" + dataVersion + "/House/shopping.json"))
 shopList = [shop for shop in locationList if shop.locType == "shop"]
+
+exerciseList = [exercise for exercise in locationList if exercise.locType == "exercise"]
+
+maleExerciseData = json.load(open("data/" + dataVersion + "/Male/exerciseFreq.json"))
+femaleExerciseData = json.load(open("data/" + dataVersion + "/Male/exerciseFreq.json"))
 
 # Calculate days off
 daysOff = []
@@ -108,34 +111,45 @@ for day in range(dayCount):
                     person.generateWorkPlan(7 - constants["time"]["daysOffPerWeek"])
         
         for person in peopleList:
+            worked = False
             if person.workPlace != "None":
                 if person.workPlan[weekDayIndex - 1]: # If someone has to work that day
                     # Generate their working times
                     hoursToWork = round(generateFromCurve(int(person.workPlace.daysCount )+ 3, (int(person.workPlace.daysCount) + 3) / 4))
                     workingTimes = generateTimePeriod(int(constants["time"]["dayStart"]), int(constants["time"]["dayEnd"]), int(hoursToWork))
                     person.goPlace(entities.vist(person.workPlace, person, workingTimes["start"], workingTimes["end"], day))
-
+                    worked = True
             if person.age > constants['age']['youngEnd']:
-                try:
-                    if not person.workPlan[weekDayIndex - 1]: # If the person is old enough to do the shopping AND NOT at work
-                        shopProb = 0
-                        if day - person.adress.lastShoppingDay != 0: # If the shopping hasn't already been done that day by another family member
-                            shopProb = (day - person.adress.lastShoppingDay) / shopData["avgDaysBetweenShops"]
-                        probList = [[True, shopProb * 100], [False, 100 - shopProb * 100]]
-                        if generateFromList(probList): # If the person decides to go shopping
-                            timeTaken = round(generateFromCurve(shopData["avgTimeForShop"], shopData["timeVar"]))
-                            shopTimes = generateTimePeriod(int(constants["time"]["dayStart"]), int(constants["time"]["dayEnd"]), int(timeTaken))
-                            
-                            shopChosen = shopList[random.randint(0, len(shopList) - 1)]
-                            
-                            person.goPlace(entities.vist(shopChosen, person, shopTimes["start"], shopTimes["end"], day))
+                if not worked: # If the person is old enough to do the shopping AND NOT at work
+                    shopProb = 0
+                    if day - person.adress.lastShoppingDay != 0: # If the shopping hasn't already been done that day by another family member
+                        shopProb = (day - person.adress.lastShoppingDay) / shopData["avgDaysBetweenShops"]
+                    probList = [[True, shopProb * 100], [False, 100 - shopProb * 100]]
+                    if generateFromList(probList): # If the person decides to go shopping
+                        timeTaken = round(generateFromCurve(shopData["avgTimeForShop"], shopData["timeVar"]))
+                        shopTimes = generateTimePeriod(int(constants["time"]["dayStart"]), int(constants["time"]["dayEnd"]), int(timeTaken))
                         
-                except AttributeError:
+                        shopChosen = shopList[random.randint(0, len(shopList) - 1)]
+                        
+                        person.goPlace(entities.vist(shopChosen, person, shopTimes["start"], shopTimes["end"], day))
+
+                        
     
     if isWeekend:
         for person in peopleList:
-            
-
+            if person.age > globals()[person.gender + "ExerciseData"]["minAge"]:
+                exerciseData = globals()[person.gender + "ExerciseData"]
+                eProb = 0
+                if day - person.dayOfLastExercise != 0: # If they haven't already exercised that day
+                    eProb = (day - person.dayOfLastExercise) / (exerciseData["avgDaysBetweenExercise"] + (exerciseData["betweenExerciseVar"] * exerciseData["betweenVarMultiplier"]))
+                eProb *= exerciseData["weekendmultiplier"]
+                eList = [[True, eProb * 100], [False, 100 - eProb * 100]]
+                if generateFromList(eList):
+                    person.updateExercise(day)
+                    exerciseDuration = round(generateFromCurve(exerciseData["avgExerciseTime"], exerciseData["timeVar"]))
+                    exerciseTimes = generateTimePeriod(constants["time"]["dayStart"], constants["time"]["dayEnd"], exerciseDuration)
+                    person.goPlace(entities.vist(exerciseList[random.randint(0, len(exerciseList) - 1)], person, exerciseTimes["start"], exerciseTimes["end"], day))
+                    
 
         
 
