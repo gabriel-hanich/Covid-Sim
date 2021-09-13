@@ -132,6 +132,32 @@ for day in range(dayCount):
                         shopChosen = shopList[random.randint(0, len(shopList) - 1)]
                         
                         person.goPlace(entities.vist(shopChosen, person, shopTimes["start"], shopTimes["end"], day))
+            # Calculate if person can do exercise
+            if person.age > globals()[person.gender + "ExerciseData"]["minAge"]:
+                exerciseData = globals()[person.gender + "ExerciseData"]
+                eProb = 0
+                if day - person.dayOfLastExercise != 0: # If they haven't already exercised that day
+                    eProb = (day - person.dayOfLastExercise) / (exerciseData["avgDaysBetweenExercise"] + (exerciseData["betweenExerciseVar"] * exerciseData["betweenVarMultiplier"]))
+                eList = [[True, eProb * 100], [False, 100 - eProb * 100]]
+                if generateFromList(eList): # If person decides to do exercise
+                    busyTime = person.findFreePeriods(day)
+                    if busyTime["end"] - busyTime["start"] <= exerciseData["latestTime"] - exerciseData["earliestTime"]: # If the person has time in their day to exercise
+                        if busyTime["start"] - busyTime["start"] >= exerciseData["latestTime"] - busyTime["end"]: # If they have more time in the morning
+                            foundVal = False
+                            while not foundVal:
+                                exerciseDuration = round(generateFromCurve(exerciseData["avgExerciseTime"], exerciseData["timeVar"]))
+                                if exerciseDuration < busyTime["start"] - exerciseData["earliestTime"]:
+                                    foundVal = True
+                            exerciseTimes = generateTimePeriod(exerciseData["earliestTime"], busyTime["start"], exerciseDuration)
+                        else: # If they are more free in the afternoon
+                            foundVal = False
+                            while not foundVal:
+                                exerciseDuration = round(generateFromCurve(exerciseData["avgExerciseTime"], exerciseData["timeVar"]))
+                                if exerciseDuration < exerciseData["latestTime"] - busyTime["end"]:
+                                    foundVal = True
+                            exerciseTimes = generateTimePeriod(busyTime["end"], exerciseData["latestTime"], exerciseDuration)
+                        person.updateExercise(day)
+                        person.goPlace(entities.vist(exerciseList[random.randint(0, len(exerciseList) - 1)], person, exerciseTimes["start"], exerciseTimes["end"], day))
 
                         
     
@@ -147,11 +173,8 @@ for day in range(dayCount):
                 if generateFromList(eList):
                     person.updateExercise(day)
                     exerciseDuration = round(generateFromCurve(exerciseData["avgExerciseTime"], exerciseData["timeVar"]))
-                    exerciseTimes = generateTimePeriod(constants["time"]["dayStart"], constants["time"]["dayEnd"], exerciseDuration)
+                    exerciseTimes = generateTimePeriod(exerciseData["earliestTime"], exerciseData["latestTime"], exerciseDuration)
                     person.goPlace(entities.vist(exerciseList[random.randint(0, len(exerciseList) - 1)], person, exerciseTimes["start"], exerciseTimes["end"], day))
                     
 
-        
-
-        
-    
+print(peopleList[1].findFreePeriods(2))

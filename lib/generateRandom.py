@@ -1,5 +1,7 @@
+from io import SEEK_END
 import random
 import numpy as np
+from numpy.lib.function_base import _parse_input_dimensions
 
 
 # Given a list of percentages and variable names
@@ -20,10 +22,14 @@ def generateFromList(dataList):
         currentCount += item[1]
     randomNumber = random.randint(1, 100)
 
+    selectedObj = None
 
     for itemIndex, item in enumerate(numbList):
         if randomNumber > item[0] and randomNumber <= item[1]:
             selectedObj = dataList[itemIndex][0]
+    if selectedObj == None:
+        selectedObj = dataList[0][0]
+
 
     return selectedObj
 
@@ -58,11 +64,11 @@ def generateTimePeriod(timeStart, timeEnd, length): # Generate a random starter 
     else: # Generate a timespan randomly within the time allocated
         latestStart = timeEnd  - length
         timeProbList = []
-        for i in range(latestStart - timeStart + 1):
+        for i in range(int(latestStart - timeStart + 1)):
             timeProbList.append([i + timeStart, 100 / (latestStart - timeStart + 1)])
         periodStart = generateFromList(timeProbList)
         periodEnd = periodStart + length
-    return {"start": periodStart, "end": periodEnd}
+    return {"start": int(periodStart), "end": int(periodEnd)}
 
 
         

@@ -1,3 +1,4 @@
+from os import truncate
 import lib.entities as entities
 from lib.readCsv import getData
 from lib.generateRandom import generateFromList
@@ -11,5 +12,7 @@ import random
 import json
 import numpy as np
 
-x = 1
-print(x % 1)
+
+x = [[True, 65.21739130434783], [False, 34.78260869565217]]
+
+print(generateFromList(x))

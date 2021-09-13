@@ -8,7 +8,7 @@ class person:
         self.id = id
         self.workPlace = "None"
         self.adress = "None"
-        self.visitLog = []
+        self.visitLog = {}
         self.dayOfLastExercise = 0
         
     def addAdress(self, adress):
@@ -31,9 +31,26 @@ class person:
                     self.workPlan[pos] = True
                     foundVal = True
     
+    def findFreePeriods(self, day):
+        earliestStart = 24
+        latestEnd = 0
+        try:
+            for item in self.visitLog[day]:
+                if item.startPeriod < earliestStart:
+                    earliestStart = item.startPeriod
+                if item.endPeriod > latestEnd:
+                    latestEnd = item.endPeriod
+        except KeyError:
+            earliestStart = 0
+            latestEnd = 24
+        return {"start": earliestStart, "end": latestEnd}
+
     def goPlace(self, place):
-       self.visitLog.append(place)
-    
+        try:
+            self.visitLog[place.day].append(place)
+        except KeyError:
+            self.visitLog[place.day] = [place]
+            
     def updateExercise(self, day):
         self.dayOfLastExercise = day
 
