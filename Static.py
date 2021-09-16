@@ -138,8 +138,8 @@ placesNeeded = round(ableCount * ((100 - constants["jobs"]["unemployment"]) / 10
 essentialRatio = getData("data/" + dataVersion + "/Workplace/essentialDistro.csv", True)
 
 #Calculate average number of jobs a worksite creates
-
-jobList = []
+jobsList = []
+siteGeneratedCount = 0
 for index, status in enumerate(["essential", "nonessential"]):
     workerProbability = getData("data/" + dataVersion + "/Workplace/" + status + "/workerCountDistro.csv", True)
     count = 0
@@ -172,14 +172,31 @@ for index, status in enumerate(["essential", "nonessential"]):
         dayList[i] = [dayList[i][0], dayList[i][1] + (siteCount - dayList)]
         dayRangeSiteCount = siteCount
 
-    print(workerCountList)
-    print(dayList)
-       
+    for site in range(siteCount):
+        workerIndex = random.randint(0, len(workerCountList) - 1)
+        workerRange = workerCountList[workerIndex][0]
+        workerCountList[workerIndex][1] -= 1
+        if workerCountList[workerIndex][1] == 0:
+            workerCountList.pop(workerIndex)
+        workerCount = decode(workerRange)
+        workerCount = random.randint(workerCount["minVal"], workerCount["maxVal"])
 
-    print("\n")
+        dayIndex = random.randint(0, len(dayList) - 1)
+        dayCount = dayList[dayIndex][0]
+        dayList[dayIndex][1] -= 1
+        if dayList[dayIndex][1] == 0:
+            dayList.pop(dayIndex)
+        maleRatio = round(generateFromCurve(0.5, constants["jobs"]["maxWorkPlaceGenderRatio"] / 100), 2) * 100 # Generate a random male percentage from Bell Curve
+        genderRatio = [["male", maleRatio], ["female", 100 - maleRatio]]
 
+        siteGeneratedCount += 1
+        prefix = "EW"
+        if index == 1:
+            prefix = "NW"
+        id = generateId(prefix, siteGeneratedCount)
 
+        jobsList.append(entities.workPlace(status, genderRatio, ageProb, workerCount, int(dayCount), id))
 
-
+print(len(jobsList))
 
 
