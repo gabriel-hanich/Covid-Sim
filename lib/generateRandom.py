@@ -1,7 +1,5 @@
-from io import SEEK_END
 import random
 import numpy as np
-from numpy.lib.function_base import _parse_input_dimensions
 
 
 # Given a list of percentages and variable names

@@ -12,7 +12,3 @@ import random
 import json
 import numpy as np
 
-
-x = [[True, 65.21739130434783], [False, 34.78260869565217]]
-
-print(generateFromList(x))

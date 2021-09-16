@@ -46,3 +46,7 @@ variation = (+-) 8 / 4
 
 Job times are calculated to try and be between 9am to 5pm so that workStart and workEnd are 
 equal distance from dayStart and dayEnd
+
+Exercise 
+People exercise more on weekends (determined by the weekendmultiplier value)
+People only exercise on weekdays when they are free to do so and will prioritise shopping and work over exercising
