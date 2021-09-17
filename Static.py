@@ -1,5 +1,7 @@
 from abc import abstractproperty
 from os import altsep, stat
+
+from numpy.core.einsumfunc import _einsum_dispatcher
 import lib.entities as entities
 from lib.readCsv import getData
 from lib.generateRandom import generateFromList
@@ -76,6 +78,7 @@ for val in houseDensityCount:
         houseList.append(entities.house(val[0], id))
 
 housePeopleList = peopleList[:]
+workerPeopleList = peopleList[:]
 # Sort people into the houses (same algorithm as last time)
 for house in houseList:
     if house.residentCount == 1:
@@ -154,15 +157,14 @@ for index, status in enumerate(["essential", "nonessential"]):
     dayList = []
     workerSiteCount = 0
     dayRangeSiteCount = 0
-    for prob in workerProbability:
+    for prob in workerProbability: # Calculate how many jobs will have each range of employee counts
         workerCountList.append([prob[0], round(prob[1] / 100 * siteCount)])
         workerSiteCount += round(prob[1] / 100 * siteCount)
-    for dayRange in daysProb:
+    for dayRange in daysProb: # Calculate how many jobs will have each specific day per week requirement
         dayList.append([dayRange[0], round(dayRange[1] / 100 * siteCount)])
         dayRangeSiteCount += round(dayRange[1] / 100 * siteCount)
     
-    print(siteCount)
-    if workerSiteCount != siteCount:
+    if workerSiteCount != siteCount: # Check for rounding errors
         i = random.randint(0, len(workerCountList) - 1)
         workerCountList[i] = [workerCountList[i][0], workerCountList[i][1] + (siteCount - workerSiteCount)]
         workerSiteCount = siteCount
@@ -172,22 +174,30 @@ for index, status in enumerate(["essential", "nonessential"]):
         dayList[i] = [dayList[i][0], dayList[i][1] + (siteCount - dayList)]
         dayRangeSiteCount = siteCount
 
-    for site in range(siteCount):
-        workerIndex = random.randint(0, len(workerCountList) - 1)
+    for site in range(siteCount): # Actually generate the job
+        workerIndex = random.randint(0, len(workerCountList) - 1) # Pick the number of employees
         workerRange = workerCountList[workerIndex][0]
-        workerCountList[workerIndex][1] -= 1
+        workerCountList[workerIndex][1] -= 1 # Remove it from list to remove duplictaes
         if workerCountList[workerIndex][1] == 0:
-            workerCountList.pop(workerIndex)
+            workerCountList.pop(workerIndex) 
         workerCount = decode(workerRange)
         workerCount = random.randint(workerCount["minVal"], workerCount["maxVal"])
 
-        dayIndex = random.randint(0, len(dayList) - 1)
+        dayIndex = random.randint(0, len(dayList) - 1) # Pick number of days that heed to be worked per week
         dayCount = dayList[dayIndex][0]
-        dayList[dayIndex][1] -= 1
+        dayList[dayIndex][1] -= 1 # Limit duplicates
         if dayList[dayIndex][1] == 0:
             dayList.pop(dayIndex)
-        maleRatio = round(generateFromCurve(0.5, constants["jobs"]["maxWorkPlaceGenderRatio"] / 100), 2) * 100 # Generate a random male percentage from Bell Curve
-        genderRatio = [["male", maleRatio], ["female", 100 - maleRatio]]
+        maleRatio = round(generateFromCurve(0.5, constants["jobs"]["maxWorkPlaceGenderRatio"] / 100), 2) # Generate a random male percentage from Bell Curve
+        genderRatio = [["male", maleRatio * workerCount], ["female", 1 - (maleRatio  * workerCount)]]
+        ageCount = []
+        ageTotal = 0
+        for age in ageProb:
+            ageCount.append([age[0], round(age[1] / 100 * workerCount)])
+            ageTotal += round(age[1] / 100 * workerCount)
+        if ageTotal != workerCount:
+            ageIndex = random.randint(0, len(ageCount) - 1)
+            ageCount[ageIndex][1] += workerCount - ageTotal
 
         siteGeneratedCount += 1
         prefix = "EW"
@@ -195,8 +205,75 @@ for index, status in enumerate(["essential", "nonessential"]):
             prefix = "NW"
         id = generateId(prefix, siteGeneratedCount)
 
-        jobsList.append(entities.workPlace(status, genderRatio, ageProb, workerCount, int(dayCount), id))
-
-print(len(jobsList))
+        jobsList.append(entities.workPlace(status, genderRatio, ageCount, workerCount, int(dayCount), id))
 
 
+# Workplaces with the lowest worker counts are given first priority in choosing workers
+jobsList.sort(key=lambda x: x.workerCount, reverse = False)
+totalJobSpots = 0
+# Fill each workplace with workers
+for workPlace in jobsList:
+    totalJobSpots += workPlace.workerCount
+    for spot in range(workPlace.workerCount): # The first 'pass' to recruit ideal workers based off age and gender
+        ageIndex = random.randint(0, len(workPlace.ageDistro) - 1)
+        ageRange = workPlace.ageDistro[ageIndex][0]
+        workPlace.ageDistro[ageIndex][1] -= 1
+        if workPlace.ageDistro[ageIndex][1] == 0:
+            workPlace.ageDistro.pop(ageIndex)
+        ageRange = decode(ageRange)
+        for personIndex, person in enumerate(workerPeopleList):
+            if person.age >= ageRange["minVal"] and person.age <= ageRange["maxVal"]:
+                workPlace.addWorker(person)
+                person.setWorkplace(workPlace.id)
+                workerPeopleList.pop(personIndex)
+                break 
+    if len(workPlace.workerList) != workPlace.workerCount: # Fill in any gaps that the first pass failed to recruit 
+        for spot in range(workPlace.workerCount - len(workPlace.workerList)):
+            for peopleIndex, people in enumerate(workerPeopleList):
+                if people.age >= constants["age"]["minJobAge"] and person.age < constants["age"]["maxJobAge"]:
+                    workPlace.addWorker(people)
+                    people.setWorkplace(workPlace.id)
+                    workerPeopleList.pop(peopleIndex)
+                    break
+
+locationTypes = getData("data/" + dataVersion + "/location/typeDiv.csv", True)
+locationTypeList = []
+locationCount = round((constants["general"]["population"] / len(houseList)) * len(jobsList))
+for loc in locationTypes:
+    locationTypeList.append([loc[0], round(loc[1] / 100 * locationCount)])
+
+locationList = []
+locCount = 0
+for locType in locationTypeList:
+    for i in range(locType[1]): 
+        locCount += 1
+        id = generateId("I", locCount)
+        locationList.append(entities.otherLocation(locType[0], locCount))
+
+# Find Stats about population
+homelessCount = 0
+ableCount = 0
+employedCount = 0
+unEmployedCount = 0
+for person in peopleList:
+    workingAge = False
+    if person.adress[0] != "H":
+        homelessCount += 1
+    if people.age >= constants["age"]["minJobAge"] and person.age < constants["age"]["maxJobAge"]:
+        ableCount += 1
+        if person.workPlace == "None":
+            unEmployedCount += 1
+    if person.workPlace != "None":
+        employedCount += 1
+
+
+# Data readouts
+print("PEOPLE GENERATED = " + str(len(peopleList)))
+print("HOUSES MADE = " + str(len(houseList)))
+print("PEOPLE NOT IN A HOUSE = " + str(homelessCount))
+print("AVERAGE PEOPLE PER HOUSE = " + str(round(len(peopleList) / len(houseList), 2)))
+print("\n")
+print("NUMBER OF JOBSITES = " + str(len(jobsList)))
+print("AVERAGE PEOPLE EMPLOYED PER JOB SITE = " + str(round(employedCount / len(jobsList), 2)))
+print("LABOUR FORCE = " + str(ableCount))
+print("PARTICIPATION RATE = " + str(round(employedCount / ableCount, 2)))
