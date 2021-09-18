@@ -265,7 +265,9 @@ for person in peopleList:
             unEmployedCount += 1
     if person.workPlace != "None":
         employedCount += 1
-
+missingSpots = 0
+for site in jobsList:
+    missingSpots += site.workerCount - len(site.workerList)
 
 # Data readouts
 print("PEOPLE GENERATED = " + str(len(peopleList)))
@@ -274,6 +276,67 @@ print("PEOPLE NOT IN A HOUSE = " + str(homelessCount))
 print("AVERAGE PEOPLE PER HOUSE = " + str(round(len(peopleList) / len(houseList), 2)))
 print("\n")
 print("NUMBER OF JOBSITES = " + str(len(jobsList)))
+print("NUMBER OF UNFILLED POSITIONS = " + str(missingSpots))
 print("AVERAGE PEOPLE EMPLOYED PER JOB SITE = " + str(round(employedCount / len(jobsList), 2)))
 print("LABOUR FORCE = " + str(ableCount))
+print("NUMBER OF EMPLOYED PEOPLE = " + str(employedCount))
 print("PARTICIPATION RATE = " + str(round(employedCount / ableCount, 2)))
+
+# Write the stuff to a file
+jsonDict = {}
+for keyWord in ["general", "people", "workplace", "house", "location"]:
+    jsonDict[keyWord] = []
+
+jsonDict["general"].append({
+    "population": constants["general"]["population"],
+    "houseCount": str(len(houseList)),
+    "workPlaceCount": str(len(jobsList)),
+    "otherLocationCount": str(len(locationList)),
+    "dataVersion": str(dataVersion)
+    })
+
+for person in peopleList:
+    jsonDict["people"].append({
+    'id': person.id,
+    'gender': person.gender,
+    'age': person.age,
+    'work': person.workPlace,
+    'adress': person.adress 
+    })
+
+for house in houseList:
+    thisData = {
+        "id": house.id,
+        "residentCount": house.residentCount,
+        'type': house.type
+    }
+    for index, person in enumerate(house.residentList):
+        thisData["resident" + str(index)] = person.id
+    
+    jsonDict["house"].append(thisData)
+
+for workPlace in jobsList:
+    thisData = {
+        "id": workPlace.id,
+        "essentialStatus": workPlace.essentialStatus,
+        "ageDistro": workPlace.ageDistro,
+        "genderRatio": workPlace.genderRatio,
+        "workerCount": workPlace.workerCount,
+        "daysCount": workPlace.daysCount
+    }
+    for index, person in enumerate(workPlace.workerList):
+        thisData["worker" + str(index)] = person.id
+    
+    jsonDict["workplace"].append(thisData)
+
+for location in locationList:
+    thisData = {
+        "id": location.id,
+        "locType": location.locType
+    }
+    jsonDict["location"].append(thisData)
+
+fileName = input("And what would you like to call the file?\n")
+if fileName.lower() != "exit":
+    with open("Generated towns/" + fileName + ".json", "w") as finalFile:
+        json.dump(jsonDict, finalFile, indent=4)

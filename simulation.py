@@ -15,7 +15,7 @@ dayCount = 18 # How long the sim will go for
 
 
 # Read the Json File
-fileName = "town2.json"
+fileName = "static.json"
 
 with open("Generated towns/" + fileName, "r") as townFile:
     townData = json.load(townFile)
