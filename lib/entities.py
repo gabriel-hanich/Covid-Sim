@@ -10,6 +10,9 @@ class person:
         self.adress = "None"
         self.visitLog = {}
         self.dayOfLastExercise = 0
+        self.covidStatus = False
+        self.covidChance = 0.5
+
         
     def addAdress(self, adress):
         self.adress = adress
@@ -54,7 +57,24 @@ class person:
     def updateExercise(self, day):
         self.dayOfLastExercise = day
 
-class house:
+    def setCovid(self, state):
+        self.covidStatus = state
+    
+
+class location:
+    def __init__(self):
+        self.visitLog = {}
+
+    def haveVisitor(self, visit):
+        try:
+            self.visitLog[visit.day].append(visit)
+        except KeyError:
+            self.visitLog[visit.day] = [visit]
+        
+        visit.person.goPlace(visit)
+
+
+class house(location):
     def __init__(self, residentCount, id):
         super().__init__()
         self.residentCount = residentCount
@@ -71,7 +91,7 @@ class house:
     def doShopping(self, day):
         self.lastShoppingDay = day
 
-class workPlace:
+class workPlace(location):
     def __init__(self, essentialStatus, genderRatio, ageDistro, workerCount, daysCount, id):
         super().__init__()
         self.essentialStatus = essentialStatus
@@ -85,14 +105,14 @@ class workPlace:
     def addWorker(self, worker):
         self.workerList.append(worker)
     
-class otherLocation:
+class otherLocation(location):
     def __init__(self, locType, id):
         super().__init__()
         self.locType = locType
-        self.visitLog = {}
         self.id = id
+        self.visitLog = {}
 
-class vist:
+class visit:
     def __init__(self, location, person, startPeriod, endPeriod, day):
         super().__init__()
         self.location = location

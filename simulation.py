@@ -12,10 +12,12 @@ import json
 
 # Constants
 dayCount = 18 # How long the sim will go for
-
+doRandomStarter = False
+startingCases = 1
+startingIndex = 198
 
 # Read the Json File
-fileName = "static.json"
+fileName = "standardTown.json"
 
 with open("Generated towns/" + fileName, "r") as townFile:
     townData = json.load(townFile)
@@ -80,6 +82,9 @@ def findFromId(id, objList):
 for person in peopleList:
     person.setWorkplace(findFromId(person.workPlace, workList))
     person.addAdress(findFromId(person.adress, homeList))
+    if(person.age < 15):
+        if(person.workPlace != "None"):
+            print("Oh dear, child labor detected")
 
 
 shopData = json.load(open("data/" + dataVersion + "/House/shopping.json"))
@@ -90,11 +95,48 @@ exerciseList = [exercise for exercise in locationList if exercise.locType == "ex
 maleExerciseData = json.load(open("data/" + dataVersion + "/Male/exerciseFreq.json"))
 femaleExerciseData = json.load(open("data/" + dataVersion + "/Male/exerciseFreq.json"))
 
+
+allLocations = homeList + workList + locationList
+
+# Infect starting people with COVID
+if doRandomStarter:
+    print("STARTER INFECTION ATTRIBUTES")
+    for _ in range(startingCases):
+        infectedPerson =  peopleList[random.randint(0, len(peopleList) - 1)]
+        infectedPerson.setCovid(True)
+        try:
+            print("PERSON ID:" + str(infectedPerson.id)
+                 + "\nAGE " + str(infectedPerson.age) 
+                 + "\nHOME " + str(infectedPerson.adress.id)
+                  + "\nWORKPLACE " + str(infectedPerson.workPlace.id) + "\n")
+        except AttributeError:
+             print("PERSON ID:" + str(infectedPerson.id)
+                 + "\nAGE " + str(infectedPerson.age) 
+                 + "\nHOME " + str(infectedPerson.adress.id)
+                 + "\nNO JOB\n")
+else:
+    for i in range(startingCases):
+        peopleList[i + startingIndex].setCovid(True)
+        try:
+            print("PERSON ID:" + str(peopleList[i + startingIndex].id)
+                 + "\nAGE " + str(peopleList[i + startingIndex].age) 
+                 + "\nHOME " + str(peopleList[i + startingIndex].adress.id)
+                  + "\nWORKPLACE " + str(peopleList[i + startingIndex].workPlace.id) + "\n")
+        except AttributeError:
+            print("AA")
+            print("PERSON ID:" + str(peopleList[i + startingIndex].id)
+                 + "\nAGE " + str(peopleList[i + startingIndex].age) 
+                 + "\nHOME " + str(peopleList[i + startingIndex].adress.id)
+                 + "\nNO JOB\n")
+covidCasesList = []
+
 # Calculate days off
 daysOff = []
 for i in range(constants["time"]["daysOffPerWeek"]):
     daysOff.append(7 - i)
 daysOff.sort()
+
+workingTimesCount = 0
 
 weekCount = 0
 for day in range(dayCount):
@@ -117,7 +159,8 @@ for day in range(dayCount):
                     # Generate their working times
                     hoursToWork = round(generateFromCurve(int(person.workPlace.daysCount )+ 3, (int(person.workPlace.daysCount) + 3) / 4))
                     workingTimes = generateTimePeriod(int(constants["time"]["dayStart"]), int(constants["time"]["dayEnd"]), int(hoursToWork))
-                    person.goPlace(entities.vist(person.workPlace, person, workingTimes["start"], workingTimes["end"], day))
+                    person.workPlace.haveVisitor(entities.visit(person.workPlace, person, workingTimes["start"], workingTimes["end"], day))
+                    workingTimesCount += 1
                     worked = True
             if person.age > constants['age']['youngEnd']:
                 if not worked: # If the person is old enough to do the shopping AND NOT at work
@@ -131,7 +174,7 @@ for day in range(dayCount):
                         
                         shopChosen = shopList[random.randint(0, len(shopList) - 1)]
                         
-                        person.goPlace(entities.vist(shopChosen, person, shopTimes["start"], shopTimes["end"], day))
+                        shopChosen.haveVisitor(entities.visit(shopChosen, person, shopTimes["start"], shopTimes["end"], day))
             # Calculate if person can do exercise
             if person.age > globals()[person.gender + "ExerciseData"]["minAge"]:
                 exerciseData = globals()[person.gender + "ExerciseData"]
@@ -157,9 +200,11 @@ for day in range(dayCount):
                                     foundVal = True
                             exerciseTimes = generateTimePeriod(busyTime["end"], exerciseData["latestTime"], exerciseDuration)
                         person.updateExercise(day)
-                        person.goPlace(entities.vist(exerciseList[random.randint(0, len(exerciseList) - 1)], person, exerciseTimes["start"], exerciseTimes["end"], day))
+                        person.goPlace(entities.visit(exerciseList[random.randint(0, len(exerciseList) - 1)], person, exerciseTimes["start"], exerciseTimes["end"], day))
+                        chosenLocation = exerciseList[random.randint(0, len(exerciseList) - 1)]
+                        chosenLocation.haveVisitor(entities.visit(chosenLocation, person, exerciseTimes["start"], exerciseTimes["end"], day))
 
-                        
+                    
     
     if isWeekend:
         for person in peopleList:
@@ -174,7 +219,30 @@ for day in range(dayCount):
                     person.updateExercise(day)
                     exerciseDuration = round(generateFromCurve(exerciseData["avgExerciseTime"], exerciseData["timeVar"]))
                     exerciseTimes = generateTimePeriod(exerciseData["earliestTime"], exerciseData["latestTime"], exerciseDuration)
-                    person.goPlace(entities.vist(exerciseList[random.randint(0, len(exerciseList) - 1)], person, exerciseTimes["start"], exerciseTimes["end"], day))
-                    
+                    chosenLocation.haveVisitor(entities.visit(chosenLocation, person, exerciseTimes["start"], exerciseTimes["end"], day))
 
-print(peopleList[1].findFreePeriods(2))
+    for location in allLocations:
+        visitLog = location.visitLog
+        try:
+            for log in visitLog[day]:
+                if log.person.covidStatus:
+                    posLog = log
+                    possiblePeriods = []
+                    for i in (log.endPeriod - log.startPeriod + 1):
+                        possiblePeriods.append(i + log.startPeriod)
+                        
+        except KeyError:
+            pass
+        
+
+
+    # Calculate how many posclsaitive covid cases there are
+    count = 0
+    for person in peopleList:
+        if person.covidStatus:
+            count += 1
+    covidCasesList.append(count)
+
+# plt.plot(covidCasesList)
+# plt.show()
+

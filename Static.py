@@ -8,14 +8,12 @@ from lib.generateRandom import generateFromList
 from lib.generateRandom import generateKidsCount
 from lib.generateRandom import generateFromCurve
 from lib.decodeMinMax import decode
-import matplotlib.pyplot as plt
-from collections import Counter
 import random
 import json
-import numpy as np
 
-import time
 dataVersion = "1"
+
+
 #Get Diversity data about population
 with open("data/" + dataVersion + "/diversityData.json", "r", encoding='utf-8') as divFile:
     constants = json.load(divFile)
@@ -207,7 +205,6 @@ for index, status in enumerate(["essential", "nonessential"]):
 
         jobsList.append(entities.workPlace(status, genderRatio, ageCount, workerCount, int(dayCount), id))
 
-
 # Workplaces with the lowest worker counts are given first priority in choosing workers
 jobsList.sort(key=lambda x: x.workerCount, reverse = False)
 totalJobSpots = 0
@@ -222,19 +219,20 @@ for workPlace in jobsList:
             workPlace.ageDistro.pop(ageIndex)
         ageRange = decode(ageRange)
         for personIndex, person in enumerate(workerPeopleList):
-            if person.age >= ageRange["minVal"] and person.age <= ageRange["maxVal"]:
-                workPlace.addWorker(person)
-                person.setWorkplace(workPlace.id)
-                workerPeopleList.pop(personIndex)
-                break 
-    if len(workPlace.workerList) != workPlace.workerCount: # Fill in any gaps that the first pass failed to recruit 
+             if person.age > 15:
+                if person.age > int(ageRange["minVal"]) and person.age < int(ageRange["maxVal"]):
+                    workPlace.addWorker(person)
+                    person.setWorkplace(workPlace.id)
+                    workerPeopleList.pop(personIndex)
+                    break 
+    if len(workPlace.workerList) + 1 != workPlace.workerCount: # Fill in any gaps that the first pass failed to recruit 
         for spot in range(workPlace.workerCount - len(workPlace.workerList)):
-            for peopleIndex, people in enumerate(workerPeopleList):
-                if people.age >= constants["age"]["minJobAge"] and person.age < constants["age"]["maxJobAge"]:
-                    workPlace.addWorker(people)
-                    people.setWorkplace(workPlace.id)
-                    workerPeopleList.pop(peopleIndex)
-                    break
+            for personIndex, person in enumerate(workerPeopleList):
+                if person.age > 15:
+                    workPlace.addWorker(person)
+                    person.setWorkplace(workPlace.id)
+                    workerPeopleList.pop(personIndex)
+                    break 
 
 locationTypes = getData("data/" + dataVersion + "/location/typeDiv.csv", True)
 locationTypeList = []
@@ -248,7 +246,7 @@ for locType in locationTypeList:
     for i in range(locType[1]): 
         locCount += 1
         id = generateId("I", locCount)
-        locationList.append(entities.otherLocation(locType[0], locCount))
+        locationList.append(entities.otherLocation(locType[0], id))
 
 # Find Stats about population
 homelessCount = 0

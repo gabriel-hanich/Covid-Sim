@@ -1,0 +1,12 @@
+{
+    "avgDaysBetweenExercise": 2,
+    "betweenExerciseVar": 1,
+    "avgExerciseTime": 2,
+    "timeVar": 2,
+    "weekendmultiplier":1.5,
+    "betweenVarMultiplier": 0.3,
+    "minAge": 6,
+    "earliestTime":7,
+    "latestTime" : 18
+
+}

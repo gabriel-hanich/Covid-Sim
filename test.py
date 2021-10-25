@@ -12,3 +12,22 @@ import random
 import json
 import numpy as np
 
+startPeriodA = 10
+endPeriodA = 15
+
+startPeriodB = 9
+endPeriodB = 16
+
+possiblePeriods = []
+for i in range(endPeriodA - startPeriodA + 1):
+    possiblePeriods.append(i + startPeriodA)
+
+visitedPeriods = []
+for i in range(endPeriodB - startPeriodB + 1):
+    visitedPeriods.append(i + startPeriodB)
+
+print(possiblePeriods)
+print(visitedPeriods)
+
+overLapScore = len(list(set(possiblePeriods).intersection(visitedPeriods)))
+print(overLapScore)
