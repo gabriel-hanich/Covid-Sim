@@ -1,0 +1,6 @@
+{
+    "exposureWeighting": 1, 
+    "vaccineWeighting": 1, 
+    "ageWeighting": 0.1, 
+    "maxExposurebeforeRedunant": 15
+}

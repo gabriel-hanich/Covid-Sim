@@ -1,7 +1,3 @@
-from abc import abstractproperty
-from os import altsep, stat
-
-from numpy.core.einsumfunc import _einsum_dispatcher
 import lib.entities as entities
 from lib.readCsv import getData
 from lib.generateRandom import generateFromList
@@ -279,6 +275,7 @@ print("AVERAGE PEOPLE EMPLOYED PER JOB SITE = " + str(round(employedCount / len(
 print("LABOUR FORCE = " + str(ableCount))
 print("NUMBER OF EMPLOYED PEOPLE = " + str(employedCount))
 print("PARTICIPATION RATE = " + str(round(employedCount / ableCount, 2)))
+
 
 # Write the stuff to a file
 jsonDict = {}

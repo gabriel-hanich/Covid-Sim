@@ -1,4 +1,5 @@
 import random
+from lib.generateRandom import generateFromCurve
 
 class person:
     def __init__(self, age, gender, id):
@@ -13,7 +14,6 @@ class person:
         self.covidStatus = False
         self.covidChance = 0.5
 
-        
     def addAdress(self, adress):
         self.adress = adress
     
@@ -59,7 +59,7 @@ class person:
 
     def setCovid(self, state):
         self.covidStatus = state
-    
+
 
 class location:
     def __init__(self):

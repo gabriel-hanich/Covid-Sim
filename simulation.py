@@ -3,6 +3,7 @@ from lib.readCsv import getData
 from lib.generateRandom import generateFromList
 from lib.generateRandom import generateKidsCount
 from lib.generateRandom import generateFromCurve
+from lib.generateRandom import calculateExposureChance
 from lib.decodeMinMax import decode
 from lib.generateRandom import generateTimePeriod
 import matplotlib.pyplot as plt
@@ -11,7 +12,7 @@ import random
 import json
 
 # Constants
-dayCount = 18 # How long the sim will go for
+dayCount = 8 # How long the sim will go for
 doRandomStarter = False
 startingCases = 1
 startingIndex = 198
@@ -27,6 +28,9 @@ dataVersion = townData["general"][0]["dataVersion"]
 # Generate constants data 
 with open("data/" + dataVersion + "/diversityData.json", "r", encoding='utf-8') as divFile:
     constants = json.load(divFile)
+
+with open("data/" + dataVersion + "/Covid/spread.json", "r", encoding='utf-8') as divFile:
+    covidConstants = json.load(divFile)
 
 
 
@@ -228,21 +232,32 @@ for day in range(dayCount):
                 if log.person.covidStatus:
                     posLog = log
                     possiblePeriods = []
-                    for i in (log.endPeriod - log.startPeriod + 1):
+                    for i in range(log.endPeriod - log.startPeriod + 1):
                         possiblePeriods.append(i + log.startPeriod)
-                        
+                    for searchLog in visitLog[day]:
+                        searchPeriods = []
+                        for k in range(searchLog.endPeriod - searchLog.startPeriod + 1):
+                            searchPeriods.append(k + searchLog.startPeriod)
+                        overLapScore = len(list(set(possiblePeriods).intersection(searchPeriods)))
+                        covidStatus = calculateExposureChance(covidConstants, searchLog.person, overLapScore)
+                        searchLog.person.setCovid(covidStatus)
+
+                    
         except KeyError:
             pass
         
 
 
-    # Calculate how many posclsaitive covid cases there are
+    # Calculate how many positive covid cases there are
     count = 0
     for person in peopleList:
         if person.covidStatus:
             count += 1
-    covidCasesList.append(count)
+    covidCasesList.append(count / constants["general"]["population"])
 
-# plt.plot(covidCasesList)
-# plt.show()
+    print("DONE DAY " + str(day) + "/" + str(dayCount))
+
+plt.plot(covidCasesList)
+plt.title("Covid cases over time")
+plt.show()
 

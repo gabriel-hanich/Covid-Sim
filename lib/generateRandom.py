@@ -68,5 +68,9 @@ def generateTimePeriod(timeStart, timeEnd, length): # Generate a random starter 
         periodEnd = periodStart + length
     return {"start": int(periodStart), "end": int(periodEnd)}
 
-
-        
+def calculateExposureChance(covidConstants, person, periodsTogether):
+    chance = generateFromCurve(0.5, 0.5) + (1 / abs(covidConstants["maxExposurebeforeRedunant"] - periodsTogether) * covidConstants["exposureWeighting"]) 
+    if chance > 1:
+        chance = 1
+    result = generateFromList([[True, chance * 100], [False, (100-(chance * 100))]])
+    return result
