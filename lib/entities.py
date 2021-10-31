@@ -1,18 +1,32 @@
 import random
-from lib.generateRandom import generateFromCurve
+from lib.generateRandom import generateFromCurve, generateFromList
 
 class person:
-    def __init__(self, age, gender, id):
+    def __init__(self, age, gender, id, fluctuationScore):
         super().__init__()
         self.age = age
         self.gender = gender
         self.id = id
+        self.fluctuationScore = fluctuationScore
         self.workPlace = "None"
         self.adress = "None"
         self.visitLog = {}
         self.dayOfLastExercise = 0
+
         self.covidStatus = False
-        self.covidChance = 0.5
+        self.infectionDay = 0
+        self.healthScore = 0
+
+
+    def newDay(self):
+        if not self.covidStatus:
+            self.healthScore = 0 
+        if generateFromList([[True, (100 * self.fluctuationScore)], [False, (100 - 100 * self.fluctuationScore)]]):
+            self.healthScore += round(generateFromCurve(self.fluctuationScore, self.fluctuationScore), 2)
+        
+        if self.healthScore > 0.9: # If person is close to death
+            if generateFromList([[True, (self.healthScore / 2) * 100], [False, 100 - (self.healthScore / 2) * 100]]): # Find if person should die
+                return "DEAD"
 
     def addAdress(self, adress):
         self.adress = adress
@@ -57,8 +71,12 @@ class person:
     def updateExercise(self, day):
         self.dayOfLastExercise = day
 
-    def setCovid(self, state):
+    def setCovid(self, state, day):
         self.covidStatus = state
+        self.infectionDay = day
+
+        if state:
+            self.fluctuationScore *= 2
 
 
 class location:

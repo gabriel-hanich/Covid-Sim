@@ -3,7 +3,7 @@ from lib.readCsv import getData
 from lib.generateRandom import generateFromList
 from lib.generateRandom import generateKidsCount
 from lib.generateRandom import generateFromCurve
-from lib.generateRandom import calculateExposureChance
+from lib.generateRandom import calculateExposureOutcome
 from lib.decodeMinMax import decode
 from lib.generateRandom import generateTimePeriod
 import matplotlib.pyplot as plt
@@ -12,13 +12,13 @@ import random
 import json
 
 # Constants
-dayCount = 8 # How long the sim will go for
+dayCount = 30 # How long the sim will go for
 doRandomStarter = False
 startingCases = 1
 startingIndex = 198
 
 # Read the Json File
-fileName = "standardTown.json"
+fileName = "town1Static.json"
 
 with open("Generated towns/" + fileName, "r") as townFile:
     townData = json.load(townFile)
@@ -41,7 +41,7 @@ workList = []
 locationList = []
 unfullWorksites = 0
 for person in townData["people"]:
-    thisPerson = entities.person(person["age"], person["gender"], person["id"])
+    thisPerson = entities.person(person["age"], person["gender"], person["id"], float(person["fluctuationScore"]))
     thisPerson.setWorkplace(person["work"])
     thisPerson.addAdress(person["adress"])
     peopleList.append(thisPerson)
@@ -107,7 +107,7 @@ if doRandomStarter:
     print("STARTER INFECTION ATTRIBUTES")
     for _ in range(startingCases):
         infectedPerson =  peopleList[random.randint(0, len(peopleList) - 1)]
-        infectedPerson.setCovid(True)
+        infectedPerson.setCovid(True, 0)
         try:
             print("PERSON ID:" + str(infectedPerson.id)
                  + "\nAGE " + str(infectedPerson.age) 
@@ -120,7 +120,7 @@ if doRandomStarter:
                  + "\nNO JOB\n")
 else:
     for i in range(startingCases):
-        peopleList[i + startingIndex].setCovid(True)
+        peopleList[i + startingIndex].setCovid(True, 0)
         try:
             print("PERSON ID:" + str(peopleList[i + startingIndex].id)
                  + "\nAGE " + str(peopleList[i + startingIndex].age) 
@@ -132,7 +132,11 @@ else:
                  + "\nAGE " + str(peopleList[i + startingIndex].age) 
                  + "\nHOME " + str(peopleList[i + startingIndex].adress.id)
                  + "\nNO JOB\n")
-covidCasesList = []
+
+
+covidCasesList = [startingCases]
+covidChangeList = [startingCases]
+deathsList = []
 
 # Calculate days off
 daysOff = []
@@ -149,6 +153,13 @@ for day in range(dayCount):
     if day % 7 == 0 or day % 7 in daysOff:
         isWeekend = True
 
+    deathCount = 0
+    for personIndex, person in enumerate(peopleList):
+        if person.newDay() == "DEAD":
+            deathCount += 1
+            print(person.id + " DIED")
+            peopleList.pop(personIndex)
+    deathsList.append(deathCount)
     if not isWeekend: # If its a weekday
         weekDayIndex = day % 7
         if weekDayIndex == 1: # If its the first day of the week    
@@ -239,8 +250,9 @@ for day in range(dayCount):
                         for k in range(searchLog.endPeriod - searchLog.startPeriod + 1):
                             searchPeriods.append(k + searchLog.startPeriod)
                         overLapScore = len(list(set(possiblePeriods).intersection(searchPeriods)))
-                        covidStatus = calculateExposureChance(covidConstants, searchLog.person, overLapScore)
-                        searchLog.person.setCovid(covidStatus)
+                        covidStatus = calculateExposureOutcome(covidConstants, searchLog.person, overLapScore)
+                        searchLog.person.setCovid(covidStatus, day)
+                    break
 
                     
         except KeyError:
@@ -253,11 +265,18 @@ for day in range(dayCount):
     for person in peopleList:
         if person.covidStatus:
             count += 1
-    covidCasesList.append(count / constants["general"]["population"])
+    covidCasesList.append(count)
+    covidChangeList.append(count - covidCasesList[-2])
 
     print("DONE DAY " + str(day) + "/" + str(dayCount))
 
-plt.plot(covidCasesList)
+
+plt.plot(covidCasesList, label="Toatal number of COVID cases")
+plt.plot(covidChangeList, label="Daily change")
+plt.plot(deathsList, label="Deaths")
+
 plt.title("Covid cases over time")
+plt.legend()
+
 plt.show()
 

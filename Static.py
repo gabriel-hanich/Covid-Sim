@@ -20,16 +20,26 @@ def generateId(prefix, val):
 maleAgeFreq = getData("data/" + dataVersion + "/Male/ageDistro.csv", True)
 femaleAgeFreq = getData("data/" + dataVersion + "/Female/ageDistro.csv", True)
 houseDensityFreq = getData("data/" + dataVersion + "/House/densityDistro.csv", True)
+fluctuationFreqRaw = {"male": getData("data/" + dataVersion + "/Male/Health/fluctuationDistro.csv", True), "female": getData("data/" + dataVersion + "/Female/Health/fluctuationDistro.csv", True)}
+
 
 traitList = []
 
 population = 0
 
+fluctuationDict = {}
+for gender in ["male", "female"]:
+    fluctuationDict[gender] = []
+    for fluctuation in fluctuationFreqRaw[gender]:
+        freq = ((constants["gender"][gender.lower() + "Percent"] / 100) * (fluctuation[1]/ 100))
+        fluctuationDict[gender].append([fluctuation[0], round(freq * constants["general"]["population"])])
+
 for gender in ["male", "female"]:
     for ageRange in globals()[gender + "AgeFreq"]:
         freq = ((constants["gender"][gender + "Percent"] / 100) * (ageRange[1] / 100))
+        freq = round(freq * constants["general"]["population"])
         
-        traitList.append([gender, ageRange[0], round(freq * constants["general"]["population"])])
+        traitList.append([gender, ageRange[0], freq])
         population += round(freq * constants["general"]["population"])
 
 
@@ -38,9 +48,25 @@ generatedCount = 0
 for trait in traitList:
     gender = trait[0]
     ageRange = decode(trait[1]) 
-    for person in range(trait[-1]):
+    for _ in range(trait[-1]):
+        try:
+            fluctuationIndex = random.randint(0, len(fluctuationDict[gender]) - 1)
+            if fluctuationDict[gender][fluctuationIndex][1] == 0:
+                fluctuationDict[gender].pop(fluctuationIndex)
+                fluctuationIndex = random.randint(0, len(fluctuationDict[gender]) - 1)
+                
+            fluctuationScore = fluctuationDict[gender][fluctuationIndex][0]
+            fluctuationDict[gender][fluctuationIndex][1] -= 1
+            if fluctuationDict[gender][fluctuationIndex][1] == 0:
+                fluctuationDict[gender].pop(fluctuationIndex)
+        except ValueError:
+            fluctuationScore = 0.1
+            
+
+
+        peopleList.append(entities.person(random.randint(ageRange["minVal"], ageRange["maxVal"]), gender, generateId("P", generatedCount), fluctuationScore))
         generatedCount += 1
-        peopleList.append(entities.person(random.randint(ageRange["minVal"], ageRange["maxVal"]), gender, generateId("P", generatedCount)))
+
 
 # Calculate number of houses required
 houseCount = 0 
@@ -296,7 +322,8 @@ for person in peopleList:
     'gender': person.gender,
     'age': person.age,
     'work': person.workPlace,
-    'adress': person.adress 
+    'adress': person.adress,
+    'fluctuationScore': person.fluctuationScore
     })
 
 for house in houseList:

@@ -50,3 +50,9 @@ equal distance from dayStart and dayEnd
 Exercise 
 People exercise more on weekends (determined by the weekendmultiplier value)
 People only exercise on weekdays when they are free to do so and will prioritise shopping and work over exercising
+
+
+Health score 
+0 is 100% healthy
+1 is dead, death can happen if healthScore is above 0.9, IF this occurs the chance of death is given by healthScore
+Fluctuation score is the probability on a day that someone will fill unwell AND gives the bell curve for the degree to which they are sick

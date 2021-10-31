@@ -19,6 +19,8 @@ with open("data/" + dataVersion + "/diversityData.json", "r", encoding='utf-8') 
 
 
 genderFreq = [["male", constants["gender"]["malePercent"]], ["female", constants["gender"]["femalePercent"]]]
+fluctuationDict = {"male": getData("data/" + dataVersion + "/Male/Health/fluctuationDistro.csv", True), "female": getData("data/" + dataVersion + "/Female/Health/fluctuationDistro.csv", True)}
+
 
 
 
@@ -37,9 +39,10 @@ for i in range(constants["general"]["population"]):
     ageRange = generateFromList(globals()[gender + "AgeFreq"]) # Generate a random age range based off of data, (e.g 0-5)
     ageRange = decode(ageRange)
     age = random.randint(ageRange["minVal"], ageRange["maxVal"]) # Generate a random age in the specified age range
+    fluctuationScore = generateFromList(fluctuationDict[gender])
     id = generateId("P", i + 1)
 
-    housePeopleList.append(entities.person(age, gender, id))
+    housePeopleList.append(entities.person(age, gender, id, fluctuationScore))
 
 workerPeopleList = housePeopleList[:]
 jsonPeopleList =  housePeopleList[:]
@@ -256,7 +259,8 @@ for person in jsonPeopleList:
     'gender': person.gender,
     'age': person.age,
     'work': person.workPlace,
-    'adress': person.adress 
+    'adress': person.adress,
+    'fluctuationScore': person.fluctuationScore
     })
 
 for house in houseList:
