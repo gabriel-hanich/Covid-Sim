@@ -1,6 +1,13 @@
 {
-    "exposureWeighting": 1, 
+    "exposureWeighting": 3, 
+    "maxExposureBeforeRedundant":8,
     "vaccineWeighting": 1, 
-    "ageWeighting": 0.1, 
-    "maxExposurebeforeRedunant": 15
+    "ageWeighting": 2, 
+    "fluctuationWeighting":2,
+    "avgSymptomDelay":5,
+    "maxSymptomDelay": 14,
+    "bonusWeighting": 0.75,
+    "lowestRiskAge":25,
+    "maxPossibleAge": 100,
+    "maxPossibleFlucScore":0.2
 }

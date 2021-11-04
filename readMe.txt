@@ -56,3 +56,11 @@ Health score
 0 is 100% healthy
 1 is dead, death can happen if healthScore is above 0.9, IF this occurs the chance of death is given by healthScore
 Fluctuation score is the probability on a day that someone will fill unwell AND gives the bell curve for the degree to which they are sick
+
+Health scores w/ covid
+Covid doubles chance of Fluctuation
+
+
+COVID constants
+Exposure weighting is the power to which the overLap time is rasied before being added to the probability
+Same with Vaccine weighting

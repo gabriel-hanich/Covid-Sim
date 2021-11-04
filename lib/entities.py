@@ -71,6 +71,9 @@ class person:
     def updateExercise(self, day):
         self.dayOfLastExercise = day
 
+    def setCovidConstants(self, constants):
+        self.covidConstants = constants
+
     def setCovid(self, state, day):
         self.covidStatus = state
         self.infectionDay = day
@@ -139,4 +142,5 @@ class visit:
         self.endPeriod = endPeriod
         self.day = day
 
-    
+
+        

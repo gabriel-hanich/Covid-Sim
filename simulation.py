@@ -3,7 +3,9 @@ from lib.readCsv import getData
 from lib.generateRandom import generateFromList
 from lib.generateRandom import generateKidsCount
 from lib.generateRandom import generateFromCurve
-from lib.generateRandom import calculateExposureOutcome
+from lib.generateRandom import calculateExposureChance
+from lib.generateRandom import calculateExposureChanceLegacy
+from lib.generateRandom import normalizeVal
 from lib.decodeMinMax import decode
 from lib.generateRandom import generateTimePeriod
 import matplotlib.pyplot as plt
@@ -44,6 +46,7 @@ for person in townData["people"]:
     thisPerson = entities.person(person["age"], person["gender"], person["id"], float(person["fluctuationScore"]))
     thisPerson.setWorkplace(person["work"])
     thisPerson.addAdress(person["adress"])
+    thisPerson.setCovidConstants(covidConstants)
     peopleList.append(thisPerson)
 
 for house in townData["house"]:
@@ -133,6 +136,9 @@ else:
                  + "\nHOME " + str(peopleList[i + startingIndex].adress.id)
                  + "\nNO JOB\n")
 
+# Calculate the highest possible score someone can have for getting COVID (highest number possible from calculeExposure())
+maxPossibleCovidScore = calculateExposureChanceLegacy(covidConstants["maxPossibleAge"], covidConstants, covidConstants["maxExposureBeforeRedundant"], covidConstants["maxPossibleFlucScore"])
+
 
 covidCasesList = [startingCases]
 covidChangeList = [startingCases]
@@ -157,7 +163,6 @@ for day in range(dayCount):
     for personIndex, person in enumerate(peopleList):
         if person.newDay() == "DEAD":
             deathCount += 1
-            print(person.id + " DIED")
             peopleList.pop(personIndex)
     deathsList.append(deathCount)
     if not isWeekend: # If its a weekday
@@ -246,12 +251,15 @@ for day in range(dayCount):
                     for i in range(log.endPeriod - log.startPeriod + 1):
                         possiblePeriods.append(i + log.startPeriod)
                     for searchLog in visitLog[day]:
-                        searchPeriods = []
-                        for k in range(searchLog.endPeriod - searchLog.startPeriod + 1):
-                            searchPeriods.append(k + searchLog.startPeriod)
-                        overLapScore = len(list(set(possiblePeriods).intersection(searchPeriods)))
-                        covidStatus = calculateExposureOutcome(covidConstants, searchLog.person, overLapScore)
-                        searchLog.person.setCovid(covidStatus, day)
+                        if not searchLog.person.covidStatus:
+                            searchPeriods = []
+                            for k in range(searchLog.endPeriod - searchLog.startPeriod + 1):
+                                searchPeriods.append(k + searchLog.startPeriod)
+                            overLapScore = len(list(set(possiblePeriods).intersection(searchPeriods)))
+                            covidChance = calculateExposureChance(searchLog.person, covidConstants, overLapScore)
+                            covidChance = normalizeVal(covidChance, 0, maxPossibleCovidScore)
+                            if generateFromList([[True, covidChance * 100], [False, 100 - (covidChance * 100)]]):
+                                searchLog.person.setCovid(True, day)
                     break
 
                     

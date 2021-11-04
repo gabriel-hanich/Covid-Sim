@@ -68,12 +68,16 @@ def generateTimePeriod(timeStart, timeEnd, length): # Generate a random starter 
         periodEnd = periodStart + length
     return {"start": int(periodStart), "end": int(periodEnd)}
 
-def calculateExposureOutcome(covidConstants, person, periodsTogether):
-    if not person.covidStatus:
-        chance = generateFromCurve(0.5, 0.5) + (1 / abs(covidConstants["maxExposurebeforeRedunant"] - periodsTogether) * covidConstants["exposureWeighting"]) 
-        if chance > 1:
-            chance = 1
-        result = generateFromList([[True, chance * 100], [False, (100-(chance * 100))]])
-        return result
+def normalizeVal(val, minVal, maxVal):
+    if (val - minVal) / (maxVal - minVal) > 1:
+        return 1
     else:
-        return person.covidStatus
+        return (val - minVal) / (maxVal - minVal)
+
+def calculateExposureChance(person, covidConstants, overlapTime):
+    prob = abs(person.age - 25) ** covidConstants["ageWeighting"] + (overlapTime  ** covidConstants["exposureWeighting"]) + (person.fluctuationScore * 50) ** covidConstants["exposureWeighting"]
+    return prob
+
+def calculateExposureChanceLegacy(age, covidConstants, overlapTime, fluctuationScore):
+    prob = abs(age - 25) ** covidConstants["ageWeighting"] + (overlapTime  ** covidConstants["exposureWeighting"]) + (fluctuationScore * 50) ** covidConstants["exposureWeighting"]
+    return prob
