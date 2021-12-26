@@ -81,7 +81,3 @@ def calculateExposureChance(person, covidConstants, overlapTime):
 def calculateExposureChanceLegacy(age, covidConstants, overlapTime, fluctuationScore):
     prob = abs(age - 25) ** covidConstants["ageWeighting"] + (overlapTime  ** covidConstants["exposureWeighting"]) + (fluctuationScore * 50) ** covidConstants["fluctuationWeighting"]
     return prob
-
-def calculateSymptomStrength(age, daysSinceInfection, overlapTime):
-    prob = daysSinceInfection ** 2 + (age * overlapTime)
-    return prob

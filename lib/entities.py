@@ -1,5 +1,6 @@
 import random
-from lib.generateRandom import generateFromCurve, generateFromList, calculateSymptomStrength, normalizeVal
+from lib.generateRandom import generateFromCurve, generateFromList, normalizeVal
+from perlin_noise import PerlinNoise
 
 class person:
     def __init__(self, age, gender, id, fluctuationScore):
@@ -14,7 +15,7 @@ class person:
         self.dayOfLastExercise = 0
 
         self.covidStatus = False
-        self.awareOfCovidState = False
+        self.awareOfInfection = False
         self.infectionDay = 0
 
         self.healthScore = 0
@@ -22,16 +23,30 @@ class person:
     def newDay(self, dayNum):
         if not self.covidStatus: # Covid stops person from defaulting to healthy (healthscore = 0) each day
             self.healthScore = 0 
+
+        symptomChance = 0
+
+        if self.covidStatus:
+            if self.hasSymptoms:
+                symptomChance = self.symptomStrengths[dayNum]
+                if generateFromList([[True, symptomChance * 100], [False, 100 - (symptomChance * 100)]]):
+                    self.awareOfInfection = True
+
+            if dayNum > self.infectionEndDay:
+                self.covidStatus = False
+                self.healthScore = 0
+                self.awareOfInfection = False
+            
+
         if generateFromList([[True, (100 * self.fluctuationScore)], [False, (100 - 100 * self.fluctuationScore)]]): # Check if person is gonna have health dip
             self.healthScore += round(generateFromCurve(self.fluctuationScore, self.fluctuationScore), 2)
         
+
+
         if self.healthScore > 0.9: # If person is close to death
             if generateFromList([[True, (self.healthScore / 2) * 100], [False, 100 - (self.healthScore / 2) * 100]]): # Find if person should die
                 return "DEAD"
         
-        if self.covidStatus:
-            symptomChance = calculateSymptomStrength(self.age, abs(dayNum - self.infectionDay), self.exposureTime)
-            symptomChance = normalizeVal(symptomChance, 0, self.covidConstants["maxPossibleCovidSymptomScore"])
 
 
     def addAdress(self, adress):
@@ -81,9 +96,23 @@ class person:
         self.covidConstants = constants
 
     def getCovid(self, dayNumber, exposureTime):
+        noise = PerlinNoise(octaves= 5)
         self.infectionDay = dayNumber
         self.covidStatus = True
+        infectionDuration = int(generateFromCurve(self.covidConstants["avgInfectionDuration"], self.covidConstants["infectionVariability"]))
         self.exposureTime = exposureTime
+        self.infectionEndDay = dayNumber + infectionDuration
+
+        # Calculate if person is asymptomatic
+        if generateFromList([[True, (100 * self.covidConstants["asymptomaticChance"])], [False, 100 -(100 * self.covidConstants["asymptomaticChance"])]]):
+            self.hasSymptoms = False
+        else:
+            self.hasSymptoms = True
+            self.symptomStrengths = {}
+            for day in range(infectionDuration + 1):
+                noiseVal = abs(noise(day / infectionDuration) * 3)
+                self.symptomStrengths[dayNumber + day + 1] = noiseVal
+
         
 
 

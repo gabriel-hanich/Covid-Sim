@@ -5,7 +5,6 @@ from lib.generateRandom import generateKidsCount
 from lib.generateRandom import generateFromCurve
 from lib.generateRandom import calculateExposureChance
 from lib.generateRandom import calculateExposureChanceLegacy
-from lib.generateRandom import calculateSymptomStrength
 from lib.generateRandom import normalizeVal
 from lib.decodeMinMax import decode
 from lib.generateRandom import generateTimePeriod
@@ -13,6 +12,7 @@ import matplotlib.pyplot as plt
 from collections import Counter
 import random
 import json
+from perlin_noise import PerlinNoise
 
 # Constants
 dayCount = 30 # How long the sim will go for
@@ -123,6 +123,7 @@ if doRandomStarter:
                  + "\nHOME " + str(infectedPerson.adress.id)
                  + "\nNO JOB\n")
 else:
+    print("STARTER INFECTION ATTRIBUTES")
     for i in range(startingCases):
         peopleList[i + startingIndex].getCovid(0, covidConstants["maxExposureBeforeRedundant"])
         try:
@@ -139,7 +140,9 @@ else:
 
 # Calculate the highest possible score someone can have for getting COVID (highest number possible from calculateExposure())
 maxPossibleCovidScore = calculateExposureChanceLegacy(covidConstants["maxPossibleAge"], covidConstants, covidConstants["maxExposureBeforeRedundant"], covidConstants["maxPossibleFlucScore"])
-maxPossibleCovidSymptomScore = calculateSymptomStrength(covidConstants["maxPossibleAge"], 14, covidConstants["maxExposureBeforeRedundant"])
+maxPossibleCovidSymptomScore = 200
+
+print(maxPossibleCovidSymptomScore)
 
 covidConstants["maxPossibleCovidScore"] = maxPossibleCovidScore
 covidConstants["maxPossibleCovidSymptomScore"] = maxPossibleCovidSymptomScore
@@ -285,6 +288,7 @@ for day in range(dayCount):
     else:
         print("\b" * len(str(round((day - 1) / dayCount * 100)) + "%") + str(round(day / dayCount * 100)) + "%", end="", flush=True)
 
+print("\n")
 
 plt.plot(covidCasesList, label="Toatal number of COVID cases")
 plt.plot(covidChangeList, label="Daily change")

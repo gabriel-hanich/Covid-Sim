@@ -64,3 +64,10 @@ Covid doubles chance of Fluctuation
 COVID constants
 Exposure weighting is the power to which the overLap time is rasied before being added to the probability
 Same with Vaccine weighting
+
+For each day a person has covid, their chance of noticing it is directly correlated to their symptom strength,
+A persons symptom strength is given by:
+daysSinceInfection ** 2 + (age * overlapTime)
+Where overlap time is the amount of periods they spent in contact with the infected person who gave them COVID
+
+

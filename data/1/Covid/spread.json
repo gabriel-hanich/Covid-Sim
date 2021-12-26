@@ -9,5 +9,11 @@
     "bonusWeighting": 0.75,
     "lowestRiskAge":25,
     "maxPossibleAge": 100,
-    "maxPossibleFlucScore":0.2
+    "maxPossibleFlucScore":0.2,
+
+    "avgInfectionDuration":16,
+    "infectionVariability":5,
+
+    "asymptomaticChance": 0.17
+
 }

@@ -16,9 +16,9 @@ import math
 import collections
 
 
-def freqFunction(day, age, infectionTime):
-    val = day ** 2 + (age * infectionTime)
-    return val
+def freqFunction(day, age, exposureTime, infectionDuration):
+    val = (day - infectionDuration / 2) ** 2
+    return val * -1
 
 def normalizeVal(val, minVal, maxVal):
     try:
@@ -29,31 +29,32 @@ def normalizeVal(val, minVal, maxVal):
     except ZeroDivisionError:
         return 0
 
+infectionDuration = 16
 
-for time in range(5):
+smallestVal = 0
+for age in range(10):
     val = {}
     vals = []
-    largestVal = 0
-    for infectionDays in range(14):
-        y = freqFunction(infectionDays, 5 * 5, time)
+    for infectionDays in range(16):
+        y = freqFunction(infectionDays, age * 5, 8, infectionDuration)
         vals.append(y)
         if y not in val:
             val[y] = 1
         elif y in val:
             val[y] += 1
-        if y > largestVal:
-            largestVal = y
+        if y < smallestVal:
+            smallestVal = y
 
-    print(largestVal)
     newVals = []
     for val in vals:
-        newVals.append(normalizeVal(val, 0, largestVal))
+        val = val + abs(smallestVal)
+        newVals.append(normalizeVal(val, 0, abs(smallestVal)))
 
 
     # val = collections.OrderedDict(sorted(val.items()))
 
     # plt.plot(val.keys(), val.values())
-    plt.plot(newVals, label= str(time))
+    plt.plot(newVals, label= str(age * 5))
 
 plt.legend()
 plt.show()
