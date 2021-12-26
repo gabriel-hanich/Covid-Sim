@@ -1,5 +1,5 @@
 import random
-from lib.generateRandom import generateFromCurve, generateFromList
+from lib.generateRandom import generateFromCurve, generateFromList, calculateSymptomStrength, normalizeVal
 
 class person:
     def __init__(self, age, gender, id, fluctuationScore):
@@ -14,19 +14,25 @@ class person:
         self.dayOfLastExercise = 0
 
         self.covidStatus = False
+        self.awareOfCovidState = False
         self.infectionDay = 0
+
         self.healthScore = 0
 
-
-    def newDay(self):
-        if not self.covidStatus:
+    def newDay(self, dayNum):
+        if not self.covidStatus: # Covid stops person from defaulting to healthy (healthscore = 0) each day
             self.healthScore = 0 
-        if generateFromList([[True, (100 * self.fluctuationScore)], [False, (100 - 100 * self.fluctuationScore)]]):
+        if generateFromList([[True, (100 * self.fluctuationScore)], [False, (100 - 100 * self.fluctuationScore)]]): # Check if person is gonna have health dip
             self.healthScore += round(generateFromCurve(self.fluctuationScore, self.fluctuationScore), 2)
         
         if self.healthScore > 0.9: # If person is close to death
             if generateFromList([[True, (self.healthScore / 2) * 100], [False, 100 - (self.healthScore / 2) * 100]]): # Find if person should die
                 return "DEAD"
+        
+        if self.covidStatus:
+            symptomChance = calculateSymptomStrength(self.age, abs(dayNum - self.infectionDay), self.exposureTime)
+            symptomChance = normalizeVal(symptomChance, 0, self.covidConstants["maxPossibleCovidSymptomScore"])
+
 
     def addAdress(self, adress):
         self.adress = adress
@@ -74,12 +80,12 @@ class person:
     def setCovidConstants(self, constants):
         self.covidConstants = constants
 
-    def setCovid(self, state, day):
-        self.covidStatus = state
-        self.infectionDay = day
+    def getCovid(self, dayNumber, exposureTime):
+        self.infectionDay = dayNumber
+        self.covidStatus = True
+        self.exposureTime = exposureTime
+        
 
-        if state:
-            self.fluctuationScore *= 2
 
 
 class location:

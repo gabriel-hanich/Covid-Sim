@@ -75,9 +75,13 @@ def normalizeVal(val, minVal, maxVal):
         return (val - minVal) / (maxVal - minVal)
 
 def calculateExposureChance(person, covidConstants, overlapTime):
-    prob = abs(person.age - 25) ** covidConstants["ageWeighting"] + (overlapTime  ** covidConstants["exposureWeighting"]) + (person.fluctuationScore * 50) ** covidConstants["exposureWeighting"]
+    prob = abs(person.age - 25) ** covidConstants["ageWeighting"] + (overlapTime  ** covidConstants["exposureWeighting"]) + (person.fluctuationScore * 50) ** covidConstants["fluctuationWeighting"]
     return prob
 
 def calculateExposureChanceLegacy(age, covidConstants, overlapTime, fluctuationScore):
-    prob = abs(age - 25) ** covidConstants["ageWeighting"] + (overlapTime  ** covidConstants["exposureWeighting"]) + (fluctuationScore * 50) ** covidConstants["exposureWeighting"]
+    prob = abs(age - 25) ** covidConstants["ageWeighting"] + (overlapTime  ** covidConstants["exposureWeighting"]) + (fluctuationScore * 50) ** covidConstants["fluctuationWeighting"]
+    return prob
+
+def calculateSymptomStrength(age, daysSinceInfection, overlapTime):
+    prob = daysSinceInfection ** 2 + (age * overlapTime)
     return prob

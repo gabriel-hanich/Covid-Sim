@@ -1,17 +1,18 @@
-from typing import OrderedDict
 import lib.entities as entities
 from lib.readCsv import getData
 from lib.generateRandom import generateFromList
 from lib.generateRandom import generateKidsCount
 from lib.generateRandom import generateFromCurve
+from lib.generateRandom import calculateExposureChance
+from lib.generateRandom import calculateExposureChanceLegacy
+from lib.generateRandom import calculateSymptomStrength
+from lib.generateRandom import normalizeVal
 from lib.decodeMinMax import decode
 from lib.generateRandom import generateTimePeriod
 import matplotlib.pyplot as plt
+from collections import Counter
 import random
 import json
-import numpy as np
-import math
-import collections
 
 with open("data/" + "1" + "/Covid/spread.json", "r", encoding='utf-8') as divFile:
     covidConstants = json.load(divFile)

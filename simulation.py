@@ -5,6 +5,7 @@ from lib.generateRandom import generateKidsCount
 from lib.generateRandom import generateFromCurve
 from lib.generateRandom import calculateExposureChance
 from lib.generateRandom import calculateExposureChanceLegacy
+from lib.generateRandom import calculateSymptomStrength
 from lib.generateRandom import normalizeVal
 from lib.decodeMinMax import decode
 from lib.generateRandom import generateTimePeriod
@@ -123,7 +124,7 @@ if doRandomStarter:
                  + "\nNO JOB\n")
 else:
     for i in range(startingCases):
-        peopleList[i + startingIndex].setCovid(True, 0)
+        peopleList[i + startingIndex].getCovid(0, covidConstants["maxExposureBeforeRedundant"])
         try:
             print("PERSON ID:" + str(peopleList[i + startingIndex].id)
                  + "\nAGE " + str(peopleList[i + startingIndex].age) 
@@ -136,8 +137,12 @@ else:
                  + "\nHOME " + str(peopleList[i + startingIndex].adress.id)
                  + "\nNO JOB\n")
 
-# Calculate the highest possible score someone can have for getting COVID (highest number possible from calculeExposure())
+# Calculate the highest possible score someone can have for getting COVID (highest number possible from calculateExposure())
 maxPossibleCovidScore = calculateExposureChanceLegacy(covidConstants["maxPossibleAge"], covidConstants, covidConstants["maxExposureBeforeRedundant"], covidConstants["maxPossibleFlucScore"])
+maxPossibleCovidSymptomScore = calculateSymptomStrength(covidConstants["maxPossibleAge"], 14, covidConstants["maxExposureBeforeRedundant"])
+
+covidConstants["maxPossibleCovidScore"] = maxPossibleCovidScore
+covidConstants["maxPossibleCovidSymptomScore"] = maxPossibleCovidSymptomScore
 
 
 covidCasesList = [startingCases]
@@ -161,7 +166,8 @@ for day in range(dayCount):
 
     deathCount = 0
     for personIndex, person in enumerate(peopleList):
-        if person.newDay() == "DEAD":
+        personStatus = person.newDay(day)
+        if personStatus == "DEAD":
             deathCount += 1
             peopleList.pop(personIndex)
     deathsList.append(deathCount)
@@ -259,10 +265,8 @@ for day in range(dayCount):
                             covidChance = calculateExposureChance(searchLog.person, covidConstants, overLapScore)
                             covidChance = normalizeVal(covidChance, 0, maxPossibleCovidScore)
                             if generateFromList([[True, covidChance * 100], [False, 100 - (covidChance * 100)]]):
-                                searchLog.person.setCovid(True, day)
+                                searchLog.person.getCovid(day, overLapScore)
                     break
-
-                    
         except KeyError:
             pass
         
@@ -276,7 +280,10 @@ for day in range(dayCount):
     covidCasesList.append(count)
     covidChangeList.append(count - covidCasesList[-2])
 
-    print("DONE DAY " + str(day) + "/" + str(dayCount))
+    if day == 1:
+        print("LOADING " + str(round(day / dayCount * 100)) + "%", end="", flush=True)
+    else:
+        print("\b" * len(str(round((day - 1) / dayCount * 100)) + "%") + str(round(day / dayCount * 100)) + "%", end="", flush=True)
 
 
 plt.plot(covidCasesList, label="Toatal number of COVID cases")
