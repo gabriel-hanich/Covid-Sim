@@ -71,3 +71,4 @@ daysSinceInfection ** 2 + (age * overlapTime)
 Where overlap time is the amount of periods they spent in contact with the infected person who gave them COVID
 
 
+FILE DATA READOUTS ARE FOR THE END OF THE DAY (Hence confusion)

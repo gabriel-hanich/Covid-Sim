@@ -9,6 +9,7 @@ class person:
         self.gender = gender
         self.id = id
         self.fluctuationScore = fluctuationScore
+
         self.workPlace = "None"
         self.adress = "None"
         self.visitLog = {}
@@ -17,45 +18,55 @@ class person:
         self.covidStatus = False
         self.awareOfInfection = False
         self.infectionDay = 0
+        self.hadCovid = False
 
         self.healthScore = 0
+        self.isAlive = True
 
     def newDay(self, dayNum):
         if not self.covidStatus: # Covid stops person from defaulting to healthy (healthscore = 0) each day
-            self.healthScore = 0 
-
-        symptomChance = 0
+            self.healthScore = 0
 
         if self.covidStatus:
             if self.hasSymptoms:
-                symptomChance = self.symptomStrengths[dayNum]
+                try:
+                    symptomChance = self.symptomStrengths[dayNum]
+                except KeyError:
+                    print("AAA")
+                    print("\n")
+                    print(self.covidStatus)
+                    print(self.infectionEndDay)
+                    print(self.awareOfInfection)
+                    print(dayNum)
+                    print(self.symptomStrengths)
                 if generateFromList([[True, symptomChance * 100], [False, 100 - (symptomChance * 100)]]):
                     self.awareOfInfection = True
 
-            if dayNum > self.infectionEndDay:
+            if dayNum >= self.infectionEndDay: # After infection has passed reset health score
                 self.covidStatus = False
                 self.healthScore = 0
                 self.awareOfInfection = False
-            
+                self.hadCovid = True
+
 
         if generateFromList([[True, (100 * self.fluctuationScore)], [False, (100 - 100 * self.fluctuationScore)]]): # Check if person is gonna have health dip
             self.healthScore += round(generateFromCurve(self.fluctuationScore, self.fluctuationScore), 2)
-        
+
 
 
         if self.healthScore > 0.9: # If person is close to death
             if generateFromList([[True, (self.healthScore / 2) * 100], [False, 100 - (self.healthScore / 2) * 100]]): # Find if person should die
-                return "DEAD"
-        
+                self.isAlive = False
+
 
 
     def addAdress(self, adress):
         self.adress = adress
-    
+
     def setWorkplace(self, workPlace):
         self.workPlace = workPlace
-    
-    def generateWorkPlan(self, workingDays): 
+
+    def generateWorkPlan(self, workingDays):
         # Generates a list which dictates when the person goes to work
         self.workPlan = []
         for _ in range(workingDays):
@@ -68,7 +79,7 @@ class person:
                 if self.workPlan[pos] == False:
                     self.workPlan[pos] = True
                     foundVal = True
-    
+
     def findFreePeriods(self, day):
         earliestStart = 24
         latestEnd = 0
@@ -88,7 +99,7 @@ class person:
             self.visitLog[place.day].append(place)
         except KeyError:
             self.visitLog[place.day] = [place]
-            
+
     def updateExercise(self, day):
         self.dayOfLastExercise = day
 
@@ -108,12 +119,12 @@ class person:
             self.hasSymptoms = False
         else:
             self.hasSymptoms = True
-            self.symptomStrengths = {}
-            for day in range(infectionDuration + 1):
-                noiseVal = abs(noise(day / infectionDuration) * 3)
-                self.symptomStrengths[dayNumber + day + 1] = noiseVal
+        self.symptomStrengths = {}
+        for day in range(infectionDuration + 1):
+            noiseVal = abs(noise(day / infectionDuration) * 3)
+            self.symptomStrengths[dayNumber + day + 1] = noiseVal
 
-        
+
 
 
 
@@ -126,7 +137,7 @@ class location:
             self.visitLog[visit.day].append(visit)
         except KeyError:
             self.visitLog[visit.day] = [visit]
-        
+
         visit.person.goPlace(visit)
 
 
@@ -137,13 +148,13 @@ class house(location):
         self.id = id
         self.residentList = []
         self.lastShoppingDay = 0
-    
+
     def addResident(self, person):
         self.residentList.append(person)
-    
+
     def setHouseType(self, houseType):
         self.type = houseType
-        
+
     def doShopping(self, day):
         self.lastShoppingDay = day
 
@@ -160,7 +171,7 @@ class workPlace(location):
 
     def addWorker(self, worker):
         self.workerList.append(worker)
-    
+
 class otherLocation(location):
     def __init__(self, locType, id):
         super().__init__()
@@ -178,4 +189,3 @@ class visit:
         self.day = day
 
 
-        

@@ -4,11 +4,11 @@ from lib.generateRandom import generateFromList
 from lib.generateRandom import generateKidsCount
 from lib.generateRandom import generateFromCurve
 from lib.decodeMinMax import decode
+import os
 import random
 import json
 
 dataVersion = "1"
-
 
 #Get Diversity data about population
 with open("data/" + dataVersion + "/diversityData.json", "r", encoding='utf-8') as divFile:
@@ -88,7 +88,6 @@ if totalAvailable != constants["general"]["population"]: # In case of rounding e
         count += houseDensityCount[index][0] * houseDensityCount[index][1]
 
 # Sort people into the houses
-
 houseList = []
 houseCount = 0
 for val in houseDensityCount:
@@ -191,7 +190,7 @@ for index, status in enumerate(["essential", "nonessential"]):
 
     if dayRangeSiteCount != siteCount:
         i = random.randint(0, len(dayList) - 1)
-        dayList[i] = [dayList[i][0], dayList[i][1] + (siteCount - dayList)]
+        dayList[i] = [dayList[i][0], dayList[i][1] + (siteCount - len(dayList))]
         dayRangeSiteCount = siteCount
 
     for site in range(siteCount): # Actually generate the job
@@ -360,5 +359,6 @@ for location in locationList:
 
 fileName = input("And what would you like to call the file?\n")
 if fileName.lower() != "exit":
-    with open("Generated towns/" + fileName + ".json", "w") as finalFile:
+    os.makedirs("Generated towns/" + fileName + "/simData")
+    with open("Generated towns/" + fileName + "/" + fileName + ".json", "w") as finalFile:
         json.dump(jsonDict, finalFile, indent=4)

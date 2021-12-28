@@ -1,3 +1,4 @@
+from types import DynamicClassAttribute
 import lib.entities as entities
 from lib.readCsv import getData
 from lib.generateRandom import generateFromList
@@ -10,6 +11,7 @@ from lib.decodeMinMax import decode
 from lib.generateRandom import generateTimePeriod
 import matplotlib.pyplot as plt
 from collections import Counter
+import os
 import random
 import json
 from perlin_noise import PerlinNoise
@@ -17,13 +19,16 @@ from perlin_noise import PerlinNoise
 # Constants
 dayCount = 30 # How long the sim will go for
 doRandomStarter = False
+saveDayData = True # Whether to save the stats for each sim day or not to a .JSON file 
+writeFileDaily = False # Whether to WRITE this data to a file each day (May increase load time however data will be saved if program crashes)
 startingCases = 1
 startingIndex = 198
 
 # Read the Json File
-fileName = "town1Static.json"
+townName = "myTown"
+iterationName = "myIteration"
 
-with open("Generated towns/" + fileName, "r") as townFile:
+with open("Generated towns/" + townName + "/" + townName + ".json", "r") as townFile:
     townData = json.load(townFile)
 
 dataVersion = townData["general"][0]["dataVersion"]
@@ -94,7 +99,6 @@ for person in peopleList:
         if(person.workPlace != "None"):
             print("Oh dear, child labor detected")
 
-
 shopData = json.load(open("data/" + dataVersion + "/House/shopping.json"))
 shopList = [shop for shop in locationList if shop.locType == "shop"]
 
@@ -142,15 +146,37 @@ else:
 maxPossibleCovidScore = calculateExposureChanceLegacy(covidConstants["maxPossibleAge"], covidConstants, covidConstants["maxExposureBeforeRedundant"], covidConstants["maxPossibleFlucScore"])
 maxPossibleCovidSymptomScore = 200
 
-print(maxPossibleCovidSymptomScore)
-
 covidConstants["maxPossibleCovidScore"] = maxPossibleCovidScore
 covidConstants["maxPossibleCovidSymptomScore"] = maxPossibleCovidSymptomScore
 
 
+# Data logging lists
 covidCasesList = [startingCases]
 covidChangeList = [startingCases]
 deathsList = []
+awareList = []
+
+lastDeathCount = 0
+lastInfectedCount = 0
+lastAwareCount = 0
+
+# Init Data Logging
+if not os.path.exists("Generated towns/" + townName + "/simData/" + iterationName):
+    os.makedirs("Generated towns/" + townName + "/simData/" + iterationName)
+statsDict = {"townName":townName}
+
+for i in range(dayCount):
+    statsDict["day" + str(i + 1)] = {"stats":{
+        "totalActiveInfections": None,
+        "totalDeaths": None,
+        "dailyCases": None,
+        "dailyDeaths": None,
+        "dailyAware": None,
+        "dailyHotSpots": None
+        }, 
+        "infectedPeopleID":[],
+        "infectedPlacesID":[]
+    }
 
 # Calculate days off
 daysOff = []
@@ -167,13 +193,8 @@ for day in range(dayCount):
     if day % 7 == 0 or day % 7 in daysOff:
         isWeekend = True
 
-    deathCount = 0
     for personIndex, person in enumerate(peopleList):
         personStatus = person.newDay(day)
-        if personStatus == "DEAD":
-            deathCount += 1
-            peopleList.pop(personIndex)
-    deathsList.append(deathCount)
     if not isWeekend: # If its a weekday
         weekDayIndex = day % 7
         if weekDayIndex == 1: # If its the first day of the week    
@@ -250,11 +271,20 @@ for day in range(dayCount):
                     exerciseTimes = generateTimePeriod(exerciseData["earliestTime"], exerciseData["latestTime"], exerciseDuration)
                     chosenLocation.haveVisitor(entities.visit(chosenLocation, person, exerciseTimes["start"], exerciseTimes["end"], day))
 
+    # Assume that person is home all times when they are not out
+    for person in peopleList:
+        for spareTime in [[0, person.findFreePeriods(day)["start"]], [person.findFreePeriods(day)["end"], constants["time"]["periodsPerDay"]]]:
+            thisVisit = entities.visit(person.adress, person, spareTime[0], spareTime[1], day)
+            person.goPlace(thisVisit)
+            person.adress.haveVisitor(thisVisit)
+
+    hotSpotLocations = []
     for location in allLocations:
         visitLog = location.visitLog
         try:
             for log in visitLog[day]:
                 if log.person.covidStatus:
+                    hotSpotLocations.append(location.id)
                     posLog = log
                     possiblePeriods = []
                     for i in range(log.endPeriod - log.startPeriod + 1):
@@ -273,25 +303,62 @@ for day in range(dayCount):
         except KeyError:
             pass
         
-
-
-    # Calculate how many positive covid cases there are
-    count = 0
+    # Log day-by-day data
+    deathCount = 0
+    infectedCount = 0
+    infectedTodayCount = 0
+    awareOfInfectionCount = -lastAwareCount
+    infectedTodayList = []
     for person in peopleList:
         if person.covidStatus:
-            count += 1
-    covidCasesList.append(count)
-    covidChangeList.append(count - covidCasesList[-2])
+            infectedCount += 1
+            if person.infectionDay == day:
+                infectedTodayCount += 1
+                infectedTodayList.append(person.id)
+        if person.awareOfInfection:
+            awareOfInfectionCount += 1
+        if person.isAlive == False:
+            deathCount += 1
+
+
+    statsDict["day" + str(day)]["stats"]["totalActiveInfections"] = infectedCount
+    statsDict["day" + str(day)]["stats"]["totalDeaths"] = deathCount
+    statsDict["day" + str(day)]["stats"]["dailyCases"] = infectedTodayCount
+    statsDict["day" + str(day)]["stats"]["dailyDeaths"] = deathCount - lastDeathCount
+    statsDict["day" + str(day)]["stats"]["dailyAware"] = awareOfInfectionCount
+    statsDict["day" + str(day)]["stats"]["dailyHotSpots"] = len(hotSpotLocations)
+    statsDict["day" + str(day)]["infectedPeopleID"] = infectedTodayList
+    statsDict["day" + str(day)]["infectedPlacesID"] = hotSpotLocations
+
+    covidCasesList.append(infectedCount)
+    covidChangeList.append(infectedTodayCount)
+    deathsList.append(deathCount)
+    awareList.append(awareOfInfectionCount)
+
+    lastDeathCount = deathCount
+    lastInfectedCount = infectedCount
+    lastAwareCount = awareOfInfectionCount
+
+    if writeFileDaily:
+        with open("Generated Towns/" + townName + "/simData/" + iterationName + "/data.json", "w") as dictFile:
+            json.dump(statsDict, dictFile, indent=4)
 
     if day == 1:
         print("LOADING " + str(round(day / dayCount * 100)) + "%", end="", flush=True)
     else:
         print("\b" * len(str(round((day - 1) / dayCount * 100)) + "%") + str(round(day / dayCount * 100)) + "%", end="", flush=True)
 
+
+if not writeFileDaily:
+    with open("Generated Towns/" + townName + "/simData/" + iterationName + "/data.json", "w") as dictFile:
+        json.dump(statsDict, dictFile, indent=4)
+
+
 print("\n")
 
 plt.plot(covidCasesList, label="Toatal number of COVID cases")
 plt.plot(covidChangeList, label="Daily change")
+plt.plot(awareList, label="Aware of COVID Infection")
 plt.plot(deathsList, label="Deaths")
 
 plt.title("Covid cases over time")

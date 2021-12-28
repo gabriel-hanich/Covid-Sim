@@ -12,7 +12,7 @@
     "maxPossibleFlucScore":0.2,
 
     "avgInfectionDuration":16,
-    "infectionVariability":5,
+    "infectionVariability":10,
 
     "asymptomaticChance": 0.17
 
