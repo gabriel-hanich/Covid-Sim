@@ -29,9 +29,59 @@
     border-radius: 6px;
 }
 
+h2{
+    padding: 0px;
+    margin: 0px;
+}
+
 .fileUpload{
     margin-top: 3px;
     text-align: center;
     margin-left: 25px;
     padding: 10px 0px;
+}
+
+
+.statusContainer{
+    width: 100%;
+    margin: auto;
+    margin-top: 15px;
+    padding-left: 10px;
+}
+
+.statsContainer{
+    display: flex;
+    flex-direction: row;
+}
+
+.statContainer{
+    width: 45%;
+    background-color: #6E85B2;
+    margin-top: 0px;
+    margin-left: 15px;
+    border-radius: 3px;
+
+}
+.iterationList{
+    margin-top: 0px;
+}
+
+.iterationListItem{
+    width: fit-content;
+    height: fit-content;
+    margin: auto, 0px;
+}
+
+.iterationItemContainer{
+    width: fit-content;
+    height: fit-content;
+    margin: auto;
+
+    display: flex;
+    flex-direction: row;
+}
+
+.iterationCheckbox{
+    margin-top: 25px;
+    margin-left: 25px;
 }
