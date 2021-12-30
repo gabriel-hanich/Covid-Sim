@@ -1,0 +1,37 @@
+*{
+    font-family: oxygen-regular;
+    color: white;
+    transition: all 0.5s ease;
+}
+
+body{
+    background: #261C2C;
+    transition: all 0s ease;
+}
+
+
+@font-face {
+    font-family: oxygen-regular;
+    src: url(../resources/fonts/Oxygen-Regular.ttf);
+}
+
+
+
+h1{
+    font-size: 3rem;
+    text-align: center;
+}
+
+h2{
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+.heading{
+    width: 50%;
+    margin: auto;
+}
+
+.hidden{
+    display: none;
+}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles/style.css">
+    <link rel="stylesheet" href="/styles/welcome.css">
+    <title>Covid Sim</title>
+</head>
+<body>
+    <div class="heading">
+        <h1>Data Viewer for covid simulator</h1>
+    </div>
+
+    <div class="uploadContainer">
+        <div class="subHeading uploadHeading">
+            <h2>Upload your town folder below</h2>
+        </div>
+    
+        <div class="uploadFormContainer">
+            <form action="" class="uploadForm">
+                <input type="file" id = "fileUpload" class="fileUpload" webkitdirectory mozdirectory>
+            </form> 
+        </div>
+
+        <div class="statusContainer hidden" id="statusContainer">
+        </div>
+    </div>
+
+    <script src="/scripts/app.js"></script>
+</body>
+</html>

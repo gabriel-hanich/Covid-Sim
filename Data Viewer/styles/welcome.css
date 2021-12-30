@@ -1,0 +1,37 @@
+.uploadHeading{
+    margin-top: 150px;
+}
+
+
+
+.uploadContainer{
+    background: #5C527F;
+
+    height: fit-content;
+    width: 45%;
+
+    display: block;
+    text-align: center;
+
+    margin: auto;
+    margin-top: 50px;
+
+    border-radius: 6px;
+    
+    padding-bottom: 25px;
+}
+
+.uploadFormContainer{
+    background: #6E85B2;
+    width: 75%;
+    margin: auto;
+    margin-top: 5px;
+    border-radius: 6px;
+}
+
+.fileUpload{
+    margin-top: 3px;
+    text-align: center;
+    margin-left: 25px;
+    padding: 10px 0px;
+}
