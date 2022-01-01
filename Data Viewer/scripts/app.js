@@ -29,7 +29,6 @@ formUpload.addEventListener("change", function(event){
 
 
 function showStats(iterationList, townData){
-    console.log("YES")
     var statusContainer = document.getElementById("statusContainer");
     statusContainer.classList.remove("hidden");
     
@@ -45,28 +44,42 @@ function showStats(iterationList, townData){
         <h2>Iterations</h2>
         <ul class="iterationList">
     `
-    console.log("HI")
     for(var i=0; i<iterationList.length; i++){
-        console.log("REE")
         statusHTML += `
         <li class="iterationListItem">
             <div class="iterationItemContainer">
                 <h3> ` + iterationList[i].iterationName + `</h3>
-                <input type="checkbox" class="iterationCheckbox", id="iteration" + ` + i + ` checked>
+                <input type="checkbox" class="iterationCheckbox", id="iteration` + i + `" checked>
             </div>
         </li>
         `
     }
     
-    console.log("HI")
     statusHTML += `
             </ul>
         </div>
     </div>
 
-    <button class="submitBtn">Submit</button>
+    <button class="submitBtn" id="submitBtn">Submit</button>
     `
 
-    console.log(statusHTML)
     statusContainer.innerHTML = statusHTML
+
+    setSubmitBtnListener(iterationList, townData);
+}
+
+
+function setSubmitBtnListener(thisIterationList, townData){
+    var submitBtn = document.getElementById("submitBtn");
+    submitBtn.addEventListener("click", function(event){
+        var selectedIterations = [];
+        for(var i=0; i<thisIterationList.length; i++){
+            if(document.getElementById("iteration" + i.toString()).checked){
+                selectedIterations.push(thisIterationList[i])
+            }
+        }
+        localStorage.setItem("iterations", JSON.stringify(selectedIterations));
+        localStorage.setItem("townData", JSON.stringify(townData));
+        window.location.href = "/pages/viewer.html"
+    });
 }
