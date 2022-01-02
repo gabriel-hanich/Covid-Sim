@@ -64,7 +64,7 @@ function showStats(iterationList, townData){
     <button class="submitBtn" id="submitBtn">Submit</button>
     `
 
-    statusContainer.innerHTML = statusHTML
+    statusContainer.innerHTML = statusHTML;
 
     setSubmitBtnListener(iterationList, townData);
 }
@@ -79,8 +79,10 @@ function setSubmitBtnListener(thisIterationList, townData){
                 selectedIterations.push(thisIterationList[i])
             }
         }
-        localStorage.setItem("iterations", JSON.stringify(selectedIterations));
-        localStorage.setItem("townData", JSON.stringify(townData));
-        window.location.href = "/pages/viewer.html"
+        var dataWindow = window.open("/pages/viewer.html", "Data Viewer");
+        setTimeout(function(){
+            dataWindow.postMessage({"iterationList":thisIterationList, "townData": townData}, "*")
+            dataWindow.focus()
+        }, 250)
     });
 }

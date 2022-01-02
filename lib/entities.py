@@ -188,4 +188,13 @@ class visit:
         self.endPeriod = endPeriod
         self.day = day
 
+    def toDict(self):
+        return{
+            "location": self.location.id,
+            "person": self.person.id,
+            "startPeriod": self.startPeriod,
+            "endPeriod": self.endPeriod,
+            "day": self.day
+        }
+
 

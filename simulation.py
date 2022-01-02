@@ -19,16 +19,16 @@ from perlin_noise import PerlinNoise
 # Constants
 dayCount = 30  # How long the sim will go for
 doRandomStarter = False
-saveDayData = True  # Whether to save the stats for each sim day or not to a .JSON file
-writeFileDaily = False # Whether to WRITE this data to a file each day (May increase load time however data will be saved if program crashes)
-startingCases = 1
+saveDayData = False  # Whether to save the stats for each sim day or not to a .JSON file
+writeFileDaily = True # Whether to WRITE this data to a file each day (May increase load time however data will be saved if program crashes)
+startingCases = 2
 startingIndex = 198
 
 thingsToPlot = ["totalActiveInfections", "dailyCases", "dailyDeaths", "dailyHotSpots"]
 
 # Read the Json File
-townName = "mainTown"
-iterationName = "iteration3"
+townName = "myTown"
+iterationName = "iteration2"
 
 with open("Generated towns/" + townName + "/" + townName + ".json", "r") as townFile:
     townData = json.load(townFile)
@@ -180,7 +180,8 @@ for i in range(dayCount):
         "dailyHotSpots": None
     },
         "infectedPeopleID": [],
-        "infectedPlacesID": []
+        "infectedPlacesID": [],
+        "InfectedPeopleStates": []
     }
 
 # Calculate days off
@@ -343,12 +344,19 @@ for day in range(dayCount):
     infectedTodayCount = 0
     awareOfInfectionCount = -lastAwareCount
     infectedTodayList = []
+    peopleStates = []
     for person in peopleList:
         if person.covidStatus:
             infectedCount += 1
             if person.infectionDay == day:
                 infectedTodayCount += 1
                 infectedTodayList.append(person.id)
+            peopleStates.append({ 
+                "covidStatus":person.covidStatus,
+                "awareOfInfection":person.awareOfInfection,
+                "healthScore":person.healthScore,
+                "isAlive":person.isAlive
+                })
         if person.awareOfInfection:
             awareOfInfectionCount += 1
         if person.isAlive == False:
@@ -362,6 +370,8 @@ for day in range(dayCount):
     statsDict["day" + str(day)]["stats"]["dailyHotSpots"] = len(hotSpotLocations)
     statsDict["day" + str(day)]["infectedPeopleID"] = infectedTodayList
     statsDict["day" + str(day)]["infectedPlacesID"] = hotSpotLocations
+    statsDict["day" + str(day)]["infectedPlacesID"] = hotSpotLocations
+    statsDict["day" + str(day)]["peopleStates"] = peopleStates
 
     lastDeathCount = deathCount
     lastInfectedCount = infectedCount
