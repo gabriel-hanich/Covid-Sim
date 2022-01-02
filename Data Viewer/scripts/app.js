@@ -18,6 +18,7 @@ formUpload.addEventListener("change", function(event){
                 foundTownData = true;
             }
             if(iterationList.length == rawFiles.length - 1 && foundTownData){
+                iterationList.reverse()
                 showStats(iterationList, townData)
                 found = true
             }

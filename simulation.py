@@ -28,7 +28,7 @@ thingsToPlot = ["totalActiveInfections", "dailyCases", "dailyDeaths", "dailyHotS
 
 # Read the Json File
 townName = "mainTown"
-iterationName = "iteration2"
+iterationName = "iteration3"
 
 with open("Generated towns/" + townName + "/" + townName + ".json", "r") as townFile:
     townData = json.load(townFile)

@@ -8,11 +8,17 @@
 
 .parentGraphContainer{
     margin-top: 45px;
+    
+}
+
+.parentGraphContainer h2{
+    margin: 0px;
 }
 
 .graph{
     color: white;
 }
+
 
 .largeGraphContainer{
     width: 100%;
@@ -22,15 +28,18 @@
 .mediumGraphsContainer{
     display: flex;
     flex-direction: row;
-
+    
     gap: 45px;
     height: 350px;
 }
 
 .singleGraphContainer{
-    height: 100%;
+    height: 95%;
     width: 100%;
-
     background: #5C527F;
     border-radius: 15px;
+}
+
+.innerGraphContainer{
+    height: 85%;
 }

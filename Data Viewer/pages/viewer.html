@@ -14,8 +14,33 @@
 
     <div class="graphsContainer">
         <div class="largeGraphContainer parentGraphContainer">
-            <div class="singleGraphContainer" id="overViewContainer">
-                <canvas id="overViewGraph" class="graph" colours="colours"></canvas>
+            <div class="singleGraphContainer">
+                <h2>Daily change in cases</h2>
+                <div class="innerGraphContainer" id="dailyCasesContainer">
+                    <canvas id="dailyCasesGraph" class="graph" colours="colours"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="largeGraphContainer parentGraphContainer">
+            <div class="singleGraphContainer">
+                <h2>Total Cases</h2>
+                <div class="innerGraphContainer" id="totalCasesContainer">
+                    <canvas id="totalCasesGraph" class="graph" colours="colours"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="mediumGraphsContainer parentGraphContainer">
+            <div class="singleGraphContainer">
+                <h2>Daily Deaths</h2>
+                <div class="innerGraphContainer" id="dailyDeathsContainer">
+                    <canvas id="dailyDeaths" class="graph" colours="colours"></canvas>
+                </div>
+            </div>
+            <div class="singleGraphContainer" id="">
+                <h2>Total Deaths</h2>
+                <div class="innerGraphContainer" id="totalDeathsContainer">
+                    <canvas id="totalDeaths" class="graph" colours="colours"></canvas>
+                </div>
             </div>
         </div>
     </div>
