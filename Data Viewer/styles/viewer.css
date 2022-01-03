@@ -62,3 +62,9 @@
     height: 85%;
 }
 
+ strong{
+    color: #1A374D;
+    font-weight: bolder;
+    font-size: 1.4rem;
+    padding: 5px;
+}

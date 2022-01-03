@@ -20,7 +20,7 @@ from perlin_noise import PerlinNoise
 dayCount = 30  # How long the sim will go for
 doRandomStarter = False
 saveDayData = False  # Whether to save the stats for each sim day or not to a .JSON file
-writeFileDaily = True # Whether to WRITE this data to a file each day (May increase load time however data will be saved if program crashes)
+writeFileDaily = False # Whether to WRITE this data to a file each day (May increase load time however data will be saved if program crashes)
 startingCases = 2
 startingIndex = 198
 
@@ -344,19 +344,19 @@ for day in range(dayCount):
     infectedTodayCount = 0
     awareOfInfectionCount = -lastAwareCount
     infectedTodayList = []
-    peopleStates = []
+    peopleStates = {}
     for person in peopleList:
         if person.covidStatus:
             infectedCount += 1
             if person.infectionDay == day:
                 infectedTodayCount += 1
                 infectedTodayList.append(person.id)
-            peopleStates.append({ 
+            peopleStates[person.id] = { 
                 "covidStatus":person.covidStatus,
                 "awareOfInfection":person.awareOfInfection,
                 "healthScore":person.healthScore,
                 "isAlive":person.isAlive
-                })
+                }
         if person.awareOfInfection:
             awareOfInfectionCount += 1
         if person.isAlive == False:
@@ -387,7 +387,6 @@ for day in range(dayCount):
     else:
         print("\b" * len(str(round((day - 1) / dayCount * 100)) + "%") +
               str(round(day / dayCount * 100)) + "%", end="", flush=True)
-
 
 if not writeFileDaily:
     with open("Generated Towns/" + townName + "/simData/" + iterationName + "/data.json", "w") as dictFile:

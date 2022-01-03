@@ -81,8 +81,8 @@ function setSubmitBtnListener(thisIterationList, townData){
         }
         var dataWindow = window.open("/pages/viewer.html", "Data Viewer");
         setTimeout(function(){
-            dataWindow.postMessage({"iterationList":thisIterationList, "townData": townData}, "*")
+            dataWindow.postMessage({"iterationList":thisIterationList, "townData": townData}, "http://127.0.0.1:5500/pages/viewer.html")
             dataWindow.focus()
-        }, 250)
+        }, 100)
     });
 }
