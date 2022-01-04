@@ -192,6 +192,9 @@ daysOff.sort()
 
 workingTimesCount = 0
 
+x = 0
+a = 0
+
 weekCount = 0
 for day in range(dayCount):
     day += 1
@@ -351,11 +354,14 @@ for day in range(dayCount):
             if person.infectionDay == day:
                 infectedTodayCount += 1
                 infectedTodayList.append(person.id)
+                x += person.infectionDuration
+                a += 1
             peopleStates[person.id] = { 
                 "covidStatus":person.covidStatus,
                 "awareOfInfection":person.awareOfInfection,
                 "healthScore":person.healthScore,
-                "isAlive":person.isAlive
+                "isAlive":person.isAlive,
+                "infectionLength": person.infectionDuration
                 }
         if person.awareOfInfection:
             awareOfInfectionCount += 1
@@ -388,12 +394,18 @@ for day in range(dayCount):
         print("\b" * len(str(round((day - 1) / dayCount * 100)) + "%") +
               str(round(day / dayCount * 100)) + "%", end="", flush=True)
 
+
+
 if not writeFileDaily:
     with open("Generated Towns/" + townName + "/simData/" + iterationName + "/data.json", "w") as dictFile:
         json.dump(statsDict, dictFile, indent=4)
 
 
 print("\n")
+
+print(x)
+print(a)
+print(x / a)
 
 for stat in thingsToPlot:
     plotList = []

@@ -73,6 +73,7 @@ function showStats(iterationList, townData){
 function setSubmitBtnListener(thisIterationList, townData){
     var submitBtn = document.getElementById("submitBtn");
     submitBtn.addEventListener("click", function(event){
+        console.log(document.getElementById("iteration0").checked)
         var selectedIterations = [];
         for(var i=0; i<thisIterationList.length; i++){
             if(document.getElementById("iteration" + i.toString()).checked){
@@ -81,7 +82,7 @@ function setSubmitBtnListener(thisIterationList, townData){
         }
         var dataWindow = window.open("/pages/viewer.html", "Data Viewer");
         setTimeout(function(){
-            dataWindow.postMessage({"iterationList":thisIterationList, "townData": townData}, "http://127.0.0.1:5500/pages/viewer.html")
+            dataWindow.postMessage({"iterationList":selectedIterations, "townData": townData}, "http://127.0.0.1:5500/pages/viewer.html")
             dataWindow.focus()
         }, 100)
     });

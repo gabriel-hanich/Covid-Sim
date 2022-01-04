@@ -111,6 +111,7 @@ class person:
         self.infectionDay = dayNumber
         self.covidStatus = True
         infectionDuration = int(generateFromCurve(self.covidConstants["avgInfectionDuration"], self.covidConstants["infectionVariability"]))
+        self.infectionDuration = infectionDuration
         self.exposureTime = exposureTime
         self.infectionEndDay = dayNumber + infectionDuration
 
