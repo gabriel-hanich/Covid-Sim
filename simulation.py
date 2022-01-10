@@ -28,7 +28,7 @@ thingsToPlot = ["totalActiveInfections", "dailyCases", "dailyDeaths", "dailyHotS
 
 # Read the Json File
 townName = "myTown"
-iterationName = "iteration2"
+iterationName = "iteration1"
 
 with open("Generated towns/" + townName + "/" + townName + ".json", "r") as townFile:
     townData = json.load(townFile)
@@ -192,9 +192,6 @@ daysOff.sort()
 
 workingTimesCount = 0
 
-x = 0
-a = 0
-
 weekCount = 0
 for day in range(dayCount):
     day += 1
@@ -348,14 +345,18 @@ for day in range(dayCount):
     awareOfInfectionCount = -lastAwareCount
     infectedTodayList = []
     peopleStates = {}
+    totalVisitLog = {}
     for person in peopleList:
+        thisVisitLog = []
+        for day in person.visitLog:
+            for visit in person.visitLog[day]: 
+                thisVisitLog.append(visit.toDict())
+        totalVisitLog[person.id] = thisVisitLog
         if person.covidStatus:
             infectedCount += 1
             if person.infectionDay == day:
                 infectedTodayCount += 1
                 infectedTodayList.append(person.id)
-                x += person.infectionDuration
-                a += 1
             peopleStates[person.id] = { 
                 "covidStatus":person.covidStatus,
                 "awareOfInfection":person.awareOfInfection,
@@ -378,6 +379,9 @@ for day in range(dayCount):
     statsDict["day" + str(day)]["infectedPlacesID"] = hotSpotLocations
     statsDict["day" + str(day)]["infectedPlacesID"] = hotSpotLocations
     statsDict["day" + str(day)]["peopleStates"] = peopleStates
+    statsDict["visitLogs"] = totalVisitLog
+
+
 
     lastDeathCount = deathCount
     lastInfectedCount = infectedCount
@@ -395,17 +399,12 @@ for day in range(dayCount):
               str(round(day / dayCount * 100)) + "%", end="", flush=True)
 
 
-
 if not writeFileDaily:
     with open("Generated Towns/" + townName + "/simData/" + iterationName + "/data.json", "w") as dictFile:
         json.dump(statsDict, dictFile, indent=4)
 
 
 print("\n")
-
-print(x)
-print(a)
-print(x / a)
 
 for stat in thingsToPlot:
     plotList = []

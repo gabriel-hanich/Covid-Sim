@@ -68,7 +68,7 @@ function findId(id, idList){
         }
     }
     if(!found){
-        return NaN
+        return "NONE"
     }
 }
 
@@ -86,8 +86,6 @@ window.addEventListener("message", (event) => {
 }, false);
 
 function generatePage(iterationData, townData){
-    console.log(townData)
-    console.log(townData["house"])
     var graphList = [];
 
     window.addEventListener("resize", resizeGraphs);
@@ -174,7 +172,6 @@ function generatePage(iterationData, townData){
         healthScoresContainer.appendChild(thisHealthScoreContainer);
 
         var healthScoreDB = [];
-        console.log(iterationData);
         for(var day=0; day<iterationData[i]["simLength"]; day++){
             var totalScores = [];
             var scores = [];
@@ -240,6 +237,7 @@ function generatePage(iterationData, townData){
     resizeGraphs(graphList);
 
     console.log(iterationData)
+    console.log(townData)
 
     dailyCasesDataSet = [];
     totalCasesDataSet = [];
@@ -270,5 +268,92 @@ function generatePage(iterationData, townData){
     setUpLineGraph("totalCasesGraph", totalCasesDataSet, xData, "Day", "Total Cases");
     setUpLineGraph("dailyDeaths", dailyDeathsDataSet, xData, "Day", "Total Deaths");
     setUpLineGraph("totalDeaths", totalDeathsDataSet, xData, "Day", "Total Deaths");
+
+
+    timeSpentList = [];
+    dataPointsList = [];
+    timeSpentDB = [];
+    labels = ["home", "essentialWork", "nonEssentialWork", "exercise", "shopping", "other"]
+    for(var i=0; i<iterationData.length; i++){
+        timeSpentDict = {"home": 0, "essentialWork": 0, "nonEssentialWork":0, "exercise":0, "shopping":0, "other":0}
+        dataPoints = {"home": 0, "essentialWork": 0, "nonEssentialWork":0, "exercise":0, "shopping":0, "other":0}
+        for(var person=0; person<townData["people"].length; person++){
+            var log = iterationData[i]["visitLogs"][townData["people"][person].id]
+            for(var visit=0; visit<log.length; visit++){
+                var locID = log[visit]["location"];
+                var timeSpent = Math.abs(log[visit]["endPeriod"] - log[visit]["startPeriod"])
+                if(locID[0] == "H"){
+                    timeSpentDict["home"] += timeSpent
+                    dataPoints["home"] += 1
+                }else if(locID[0] =="E"){
+                    timeSpentDict["essentialWork"] += timeSpent
+                    dataPoints["essentialWork"] += 1
+                }else if(locID[0] == "N"){
+                    timeSpentDict["nonEssentialWork"] += timeSpent
+                    dataPoints["nonEssentialWork"] += 1
+                }else if(locID[0] == "I"){
+                    var locType = findId(locID.toString(), townData["location"]);
+                    locType = locType["locType"]
+                    if(locType == "shop"){
+                        timeSpentDict["shopping"] += timeSpent
+                        dataPoints["shopping"] += 1
+                    }else if(locType == "exercise"){
+                        timeSpentDict["exercise"] += timeSpent
+                        dataPoints["exercise"] += 1
+                    }else{
+                        timeSpentDict["other"] += timeSpent
+                        dataPoints["other"] += 1
+                    }
+                }
+            }
+        }
+        var thisData = [];
+        for(var label=0; label<labels.length; label++){
+            var thisLabel = labels[label] 
+            if(timeSpentDict[thisLabel] != 0){
+                thisData.push(Math.round((timeSpentDict[thisLabel] / dataPoints[thisLabel]) * 100) / 100) ;
+            }else{
+                thisData.push(0)
+            }
+        }
+        timeSpentDB.push({
+            label: iterationData[i]["iterationName"],
+            data: thisData,
+            fill: true, 
+            backgroundColor: colourList[i]
+        })
+    }
+
+    console.log(timeSpentDB)
+    const data = {
+        labels: labels,
+        datasets: timeSpentDB,
+    };
+    const config = {
+        type: 'radar',
+        data: data,
+        options: {
+            plugins: {
+                legend: {
+                    labels:{
+                        color: "white"
+                    }
+                }
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+            elements: {
+                    line: {
+                        borderWidth: 3
+                    }
+            }
+        }
+    };
+
+    var ctx = document.getElementById("timeGraph").getContext("2d");
+    ctx.canvas.originalwidth = ctx.canvas.width;
+    ctx.canvas.originalheight = ctx.canvas.height;
+    
+    var timeSpentGraph = new Chart("timeGraph", config)
 }
 
